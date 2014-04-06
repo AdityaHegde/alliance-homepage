@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Minstrels and Mayhem</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/bootstrap.css">
+  <link rel="stylesheet" href="css/bootstrap-theme.css">
+</head>
+<body>
+  <div id="gota-alliance"></div>
+
+  <script type="text/x-handlebars" data-template-name="index">
+    <nav class="navbar navbar-default" role="navigation">
+      <div class="navbar-header">
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar-items">
+          <span class="sr-only">Toggle navigation</span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="#">Minstrels and Mayhem</a>
+      </div>
+      <div class="collapse navbar-collapse" id="navbar-items">
+        <ul class="nav navbar-nav">
+          <li id="people-link">{{#link-to 'home'}}Home{{/link-to}}</li>
+          <li id="report-link">{{#link-to 'profile'}}Profile{{/link-to}}</li>
+        </ul>
+        <p class="navbar-text navbar-right">Signed in as {{model.userName}}</p>
+      </div>
+    </nav>
+    <div class="container">
+      {{outlet}}
+    </div>
+    <footer class="modal-footer">
+      Minstrels and Mayhem GOTA Alliance - Powered by <a href="http://emberjs.com" target="_blank">ember.js</a> and <a href="http://getbootstrap.com/css" target="_blank">bootstrap</a>
+    </footer>
+  </script>
+
+  <script type="text/x-handlebars" data-template-name="home">
+    {{#if GOTAA.CurrentProfile.canEditData}}
+      <div class="btn-toolbar">
+        <button class="btn btn-primary" {{action 'addModule'}}>Add Module</button>
+      </div>
+    {{/if}}
+    <div class="col-sm-3">
+      {{#each model.leftBar.modules}}
+        {{create-view this.viewObj moduleObj=this}}
+      {{/each}}
+    </div>
+    <div class="col-sm-6">
+      {{#each model.centerBar.modules}}
+        {{create-view this.viewObj moduleObj=this}}
+      {{/each}}
+    </div>
+    <div class="col-sm-3">
+      {{#each model.rightBar.modules}}
+        {{create-view this.viewObj moduleObj=this}}
+      {{/each}}
+    </div>
+    {{view Modal.AddEditWindow id="add-module-window" columns=columns data=data onOk=onOk onCancel=onCancel actionContext=this ariaHidden=ariaHidden}}
+  </script>
+
+  <script type="text/x-handlebars" data-template-name="profile">
+    <div class="col-sm-4">
+      <h3>{{model.email}}</h3>
+      <h5>
+        {{#if isEditing}}
+          {{view Ember.TextField value=model.gotaname placeholder="GOTA Name"}}
+        {{else}}
+          {{model.gotaname}}
+        {{/if}}
+      </h5>
+      <p>You Are A {{model.permissionFull}}</p>
+      <div class="btn-toolbar">
+        {{#if isEditing}}
+          <button class="btn btn-primary btn-sm" {{action 'saveProfile'}}>Save Profile</button>
+        {{else}}
+          <button class="btn btn-primary btn-sm" {{action 'editProfile'}}>Edit Profile</button>
+        {{/if}}
+      </div>
+      {{#if GOTAA.CurrentProfile.canEditData}}
+        <div class="btn-toolbar">
+          <button class="btn btn-primary" {{action 'inviteMember'}}>Invite Member</button>
+        </div>
+        {{view Modal.AddEditWindow id="invite-member-window" columns=columns data=data onOk=onOk onCancel=onCancel actionContext=this ariaHidden=ariaHidden}}
+      {{/if}}
+    </div>
+    <div class="col-sm-8">
+      {{outlet}}
+    </div>
+  </script>
+
+  <script src="js/libs/jquery-1.10.2.js"></script>
+  <script src="js/libs/bootstrap.js"></script>
+  <script src="js/libs/handlebars-1.1.2.js"></script>
+  <script src="js/libs/ember.js"></script>
+  <script src="js/libs/ember-data.js"></script>
+  <script src="js/utils/utils.js"></script>
+  <script src="js/utils/alerts.js"></script>
+  <script src="js/utils/panels.js"></script>
+  <script src="js/utils/editable-table.js"></script>
+  <script src="js/utils/modal.js"></script>
+  <script src="js/utils/collapsibles.js"></script>
+  <script src="js/utils/listgroups.js"></script>
+  <script src="js/utils/tooltips.js"></script>
+  <script src="js/utils/carousel.js"></script>
+  <script src="js/utils/dragdrop.js"></script>
+  <script src="js/utils/sort-filter.js"></script>
+  <script src="js/utils/columndata.js"></script>
+  <script src="js/ember/app.js"></script>
+  <script src="js/ember/views.js"></script>
+  <script src="js/ember/objects.js"></script>
+  <script src="js/ember/columndata.js"></script>
+  <script src="js/ember/routes.js"></script>
+  <script src="js/ember/controllers.js"></script>
+  <script src="js/ember/controllers.js"></script>
+  <!-- to activate the test runner, add the "?test" query string parameter -->
+  <!--script src="tests/runner.js"></script-->
+</body>
+</html>
