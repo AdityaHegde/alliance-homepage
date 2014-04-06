@@ -1,6 +1,4 @@
-expensecalculator
-=================
+guild-homepage
+==============
 
-Expense Calculator in ember.js and nodejs/python backend.
-
-python - http://expense-calculator.appspot.com
+A Module based home page for groups (Currently used as a homepage for GOTA alliance)
