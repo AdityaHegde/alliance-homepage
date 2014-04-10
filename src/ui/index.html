@@ -60,8 +60,8 @@
 
   <script type="text/x-handlebars" data-template-name="alliance">
     {{#if editing}}
-      <h3 class="text-center">{{view Ember.TextField value=model.name}}</h3>
-      <h4 class="text-center">{{view Ember.TextField value=model.motto}}</h3>
+      <h3 class="text-center">Alliance Name : {{view Ember.TextField value=model.name}}</h3>
+      <h4 class="text-center">Motto : {{view Ember.TextField value=model.motto}}</h3>
       <button class="btn btn-primary btn-sm" {{action 'saveAlliance'}}>Save</button>
     {{else}}
       <h3 class="text-center">{{model.name}}</h3>

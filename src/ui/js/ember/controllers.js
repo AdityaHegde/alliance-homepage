@@ -77,13 +77,17 @@ GOTAA.AllianceController = GOTAA.ModelOperationController.extend({
       return value;
     }
     else {
-      return Ember.isEmpty(GOTAA.GlobalData.allianceName) && GOTAA.CurrentProfile.canEditData;
+      return Ember.isEmpty(GOTAA.GlobalData.get("allianceName")) && GOTAA.CurrentProfile.get("canEditData");
     }
   }.property(),
 
   actions : {
     saveAlliance : function() {
-      GOTAA.saveRecord(this.get("model"));
+      var model = this.get("model");
+      GOTAA.saveRecord(model).then(function() {
+        GOTAA.GlobalData.set("allianceName", model.get("name"));
+        GOTAA.GlobalData.set("allianceMotto", model.get("motto"));
+      });
       this.set("editing", false);
     },
 

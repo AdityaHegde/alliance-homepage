@@ -6,8 +6,8 @@ GOTAA.IndexRoute = Ember.Route.extend({
   afterModel : function(model, transition) {
     GOTAA.CurrentProfile = model;
     meta = this.store.metadataFor("profile");
-    GOTAA.GlobalData.set("allianceName", meta.alliance.name)
-    GOTAA.GlobalData.set("allianceMotto", meta.alliance.motto)
+    GOTAA.GlobalData.set("allianceName", meta.alliance.name);
+    GOTAA.GlobalData.set("allianceMotto", meta.alliance.motto);
     if(transition.targetName === 'index.index') {
       this.transitionTo('alliance');
     }
