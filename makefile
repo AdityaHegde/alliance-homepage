@@ -11,7 +11,9 @@ MINIFIED_APP_JS = ember-app.js
 
 PY_PROD_PATH = prod/python
 PY_PROD_UI_PATH = $(PY_PROD_PATH)/public
-PY_PROD_UI_LIB_PATH = $(PY_PROD_UI_PATH)/lib
+PY_PROD_UI_JS_PATH = $(PY_PROD_UI_PATH)/js
+PY_PROD_UI_CSS_PATH = $(PY_PROD_UI_PATH)/css
+PY_PROD_UI_FONTS_PATH = $(PY_PROD_UI_PATH)/fonts
 PY_SRC_FILES = $(filter-out public, $(wildcard src/python/*))
 
 JS_SRC_PATH = src/ui/js/
@@ -22,6 +24,9 @@ JS_SRC_FILES_FULLPATH = $(addprefix $(JS_SRC_PATH), $(JS_SRC_FILES))
 JS_SRC_LIB_PATH = $(addprefix $(JS_SRC_PATH), lib)
 JS_SRC_LIB_FILES = $(wildcard $(JS_SRC_LIB_PATH)/*)
 JS_OP_FILES = $(JS_SRC_FILES_NAMES:%.js=%.min.js)
+
+FONT_SRC_PATH = src/ui/fonts
+FONT_FILES = $(wildcard $(FONT_SRC_PATH)/*)
 
 CSS_SRC_PATH = src/ui/css
 CSS_SRC_FILES = $(wildcard $(CSS_SRC_PATH)/*)
@@ -49,43 +54,66 @@ $(PY_PROD_PATH) :
 $(PY_PROD_UI_PATH) :
 	mkdir -p $(PY_PROD_UI_PATH)
 
-$(PY_PROD_UI_LIB_PATH) :
-	mkdir -p $(PY_PROD_UI_LIB_PATH)
+$(PY_PROD_UI_JS_PATH) :
+	mkdir -p $(PY_PROD_UI_JS_PATH)
 
-build : build-python build-static build-static-lib
+$(PY_PROD_UI_CSS_PATH) :
+	mkdir -p $(PY_PROD_UI_CSS_PATH)
+
+$(PY_PROD_UI_FONTS_PATH) :
+	mkdir -p $(PY_PROD_UI_FONTS_PATH)
+
+build : build-python build-static
 .PHONY : build
 
 build-python : $(PY_SRC_FILES) | $(PY_PROD_PATH)
 	cp -r $^ $(PY_PROD_PATH)
+	rm -rf $(PY_PROD_PATH)/public/*
 .PHONY : build-python
 
-build-static-lib : $(JS_SRC_LIB_FILES) | $(PY_PROD_UI_LIB_PATH)
-	cp $^ $(PY_PROD_UI_LIB_PATH)/
-.PHONY : build-static-lib
-
-build-static : build-static-js build-static-css build-static-index
+build-static : build-static-js build-static-lib build-static-css build-static-fonts build-static-index
 .PHONY : build-static
 
-build-static-index : index.html | $(PY_PROD_UI_PATH)
-	cp $^ $(PY_PROD_UI_PATH)
-.PHONY : build-static-index
-
 build-static-js : $(MINIFIED_APP_JS) | $(PY_PROD_UI_PATH)
-	cp $^ $(PY_PROD_UI_PATH)
+	cp $^ $(PY_PROD_UI_JS_PATH)/
 .PHONY : build-static-js
 
-build-static-css : $(CSS_OP_FILES) | $(PY_PROD_UI_PATH)
-	cp $^ $(PY_PROD_UI_PATH)
+build-static-lib : $(JS_SRC_LIB_FILES) | $(PY_PROD_UI_JS_PATH)
+	cp $^ $(PY_PROD_UI_JS_PATH)/
+.PHONY : build-static-lib
+
+build-static-css : $(CSS_OP_FILES) | $(PY_PROD_UI_CSS_PATH)
+	cp $^ $(PY_PROD_UI_CSS_PATH)/
 .PHONY : build-static-css
+
+build-static-fonts : $(FONT_FILES) | $(PY_PROD_UI_FONTS_PATH)
+	cp $^ $(PY_PROD_UI_FONTS_PATH)/
+.PHONY : build-static-fonts
+
+build-static-index : index.html | $(PY_PROD_UI_PATH)
+	cp $^ $(PY_PROD_UI_PATH)/
+.PHONY : build-static-index
 
 DEPLOY_CMD = appcfg.py
 DEPLOY_CMD_FLAGS = update
 
 deploy : build
 	$(DEPLOY_CMD) $(DEPLOY_CMD_FLAGS) $(PY_PROD_PATH)
-	rm *.js *.css index.html
 .PHONY : deploy
+
+clean-prod : 
+	rm -rf $(PY_PROD_PATH)/*
+.PHONY : clean-prod
 
 clean : 
 	rm *.js *.css index.html
 .PHONY : clean
+
+git-push :
+	git add -A
+	git commit
+	git push
+.PHONY : git-push
+
+release : git-push clean-prod deploy clean
+.PHONY : release
