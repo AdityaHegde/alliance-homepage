@@ -74,7 +74,7 @@ build-python : $(PY_SRC_FILES) | $(PY_PROD_PATH)
 build-static : build-static-js build-static-lib build-static-css build-static-fonts build-static-index
 .PHONY : build-static
 
-build-static-js : $(MINIFIED_APP_JS) | $(PY_PROD_UI_PATH)
+build-static-js : $(MINIFIED_APP_JS) | $(PY_PROD_UI_JS_PATH)
 	cp $^ $(PY_PROD_UI_JS_PATH)/
 .PHONY : build-static-js
 
