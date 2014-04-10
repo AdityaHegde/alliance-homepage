@@ -181,13 +181,16 @@ class InviteMember(webapp2.RequestHandler):
 
         if user and member:
             memberData = json.loads(self.request.POST['data'])
-            newMember = Member()
-            newMember.populate(**memberData)
-            newMember.put()
-            logging.warn(newMember)
-            token = get_new_token(newMember.email)
-            logging.warn(token)
-            self.response.write(json.dumps(response.success("success", {"url" : "%(host)s/validate?t=%(token)s" % {"host" : self.request.host_url, "token" : token.token},})))
+            if get_member_by_email(memberData['email']):
+                self.response.out.write(json.dumps(response.failure("500", "Email already in use")))
+            else:
+                newMember = Member()
+                newMember.populate(**memberData)
+                newMember.put()
+                logging.warn(newMember)
+                token = get_new_token(newMember.email)
+                logging.warn(token)
+                self.response.write(json.dumps(response.success("success", {"url" : "%(host)s/validate?t=%(token)s" % {"host" : self.request.host_url, "token" : token.token},})))
 
 
 class ProfileGetRequest(webapp2.RequestHandler):
