@@ -4,7 +4,7 @@ Panels.Panel = Ember.Component.extend({
   title : "",
   body : null,
   footer : null,
-  data : null,
+  obj : null,
 
   layout : Ember.Handlebars.compile('' +
     '<div class="panel-heading"><h3 class="panel-title">{{title}}</h3></div>' +

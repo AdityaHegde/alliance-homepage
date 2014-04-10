@@ -1,13 +1,103 @@
 GOTAA.IndexController = Ember.Controller.extend({
 });
 
-var getJSON = function(data) {
-  var json = JSON.parse(JSON.stringify(data));
-  delete json.validationFailed;
-  delete json.parentObj;
-  return JSON.stringify(json);
-};
-GOTAA.HomeController = Ember.Controller.extend({
+GOTAA.ModelOperationController = Ember.Controller.extend({
+  init : function() {
+    this._super();
+    this.set("columns", this.get("columnData"));
+  },
+
+  columns : Utils.hasMany(ColumnData.ColumnData),
+  columnData : [],
+  data : Ember.Object.create(),
+  newObj : false,
+  ariaHidden : false,
+  modalWindow : null,
+
+  loadColumnsAndShowWindow : function(columns, data, newObj) {
+    if(columns) this.set("columns", columns);
+    this.set("data", data);
+    this.set("newObj", newObj);
+    this.set("ariaHidden", false);
+    if(this.get("modalWindow")) $(this.get("modalWindow")).modal('show');
+  },
+
+  preSave : function() {
+  },
+
+  onSave : function() {
+    var data = this.get("data"), module = this.get("module"),
+        model = this.get("model"), modules = model.get("modules"),
+        newObj = this.get("newObj");
+    this.get("postSave").call(this);
+    if(this.get("modalWindow")) $(this.get("modalWindow")).modal('hide');
+    this.set("ariaHidden", true);
+  },
+
+  postSave : function() {
+  },
+
+  onCancel : function() {
+    var data = this.get("data");
+    this.set("data", null);
+    this.set("ariaHidden", true);
+    if(this.get("newObj")) {
+      data.deleteRecord();
+    }
+    else {
+      data.rollback();
+    }
+    //if(this.get("modalWindow")) $(this.get("modalWindow")).modal('hide');
+  },
+
+  actions : {
+    deleteData : function(record) {
+      var that = this;
+      this.get("preDelete").apply(this, arguments);
+      record.deleteRecord();
+      GOTAA.saveRecord(record).then(function(data) {
+        that.get("postDelete").call(that);
+      });
+    },
+  },
+});
+
+GOTAA.AllianceController = GOTAA.ModelOperationController.extend({
+  columnData : GOTAA.ColumnDataMap.invite,
+  modalWindow : "#invite-member-window",
+
+  postSave : function() {
+    var data = this.get("data"),
+        model = this.get("model"), members = model.get("members");
+    members.pushObject(data);
+  },
+
+  editing : function(key, value) {
+    if(arguments.length > 1) {
+      return value;
+    }
+    else {
+      return Ember.isEmpty(GOTAA.GlobalData.allianceName) && GOTAA.CurrentProfile.canEditData;
+    }
+  }.property(),
+
+  actions : {
+    saveAlliance : function() {
+      GOTAA.saveRecord(this.get("model"));
+      this.set("editing", false);
+    },
+
+    editAlliance : function() {
+      this.set("editing", true);
+    },
+
+    inviteMember : function() {
+      this.loadColumnsAndShowWindow([], this.store.createRecord('member'), true);
+    },
+  },
+});
+
+GOTAA.DashboardController = GOTAA.ModelOperationController.extend({
   init : function() {
     this._super();
     this.set("columns", []);
@@ -16,154 +106,73 @@ GOTAA.HomeController = Ember.Controller.extend({
   columns : Utils.hasMany(ColumnData.ColumnData),
   data : null,
   module : null,
-  ariaHidden : false,
-  newObj : false,
+  ariaHidden : true,
+  modalWindow : "#add-module-window",
 
-
-  onOk : function() {
+  preSave : function(data) {
     var data = this.get("data"), module = this.get("module"),
         model = this.get("model"), modules = model.get("modules"),
         newObj = this.get("newObj");
-    if(data instanceof GOTAA.ModuleObject) {
-      if(newObj) {
-        $.ajax({url : "/create_module", data : {data : getJSON(data)}, method : "POST"}).then(function(retdata) {
-          data.set("idNum", retdata.data.id);
-          var idx = modules.findBy("col", data.get("col"));
-          if(idx >= 0) {
-            modules.insertAt(idx, data);
-          }
-          else {
-            modules.pushObject(data);
-          }
-        }, function(reason) {
-          console.log(reason);
-        });
-      }
-      else {
-        $.ajax({url : "/save_module", data : {data : getJSON(data)}, method : "POST"});
-      }
+    if(!(data instanceof GOTAA.Module)) {
+      GOTAA.GlobalData.set("modId", module.get("id"));
+      GOTAA.GlobalData.set("modType", module.get("type"));
     }
-    else {
-      if(newObj) {
-        $.ajax({
-          url : "/create_module_data",
-          data : {
-            data : getJSON(data),
-            id : module.get("idNum"),
-            type : module.get("type"),
-          },
-          method : "POST"
-        }).then(function(retdata) {
-          var dataArr = module.get("data");
-          data.set("idNum", retdata.data.id);
-          dataArr.unshiftObject(data);
-        }, function(reason) {
-          console.log(reason);
-        });
-      }
-      else {
-        $.ajax({
-          url : "/save_module_data",
-          data : {
-            data : getJSON(data),
-            id : module.get("idNum"),
-            type : module.get("type"),
-          },
-          method : "POST"
-        });
-      }
-    }
-    $("#add-module-window").modal('hide');
-    this.set("ariaHidden", true);
   },
 
-  onCancel : function() {
-    this.set("data", null);
-    this.set("ariaHidden", true);
-    //$("#add-module-window").modal('hide');
+  postSave : function() {
+    var data = this.get("data"), module = this.get("module"),
+        model = this.get("model"), modules = model.get("modules"),
+        newObj = this.get("newObj");
+    if(newObj) {
+      if(!(data instanceof GOTAA.Module)) {
+        var dataArr = module.get("moduleData");
+        dataArr.unshiftObject(data);
+      }
+      else {
+        modules.pushObject(data);
+      }
+    }
+  },
+
+  preDelete : function(data, module) {
+    this.set("data", data);
+    this.set("module", module);
+    if(!(data instanceof GOTAA.Module)) {
+      GOTAA.GlobalData.set("modId", module.get("id"));
+      GOTAA.GlobalData.set("modType", module.get("type"));
+    }
+  },
+
+  postDelete : function() {
+    var data = this.get("data"), module = this.get("module");
+    module.get("moduleData").removeObject(data);
   },
 
   actions : {
     addModule : function() {
-      this.set("columns", GOTAA.ColumnDataMap.module);
-      this.set("data", GOTAA.ModuleObject.create());
-      this.set("ariaHidden", false);
-      this.set("newObj", true);
-      $("#add-module-window").modal('show');
+      this.loadColumnsAndShowWindow(GOTAA.ColumnDataMap.module, this.store.createRecord("module"), true);
     },
 
     addData : function(module) {
       var type = module.get("type");
-      this.set("columns", GOTAA.ColumnDataMap[type]);
-      this.set("data", GOTAA.ModuleDataObjectMap[type].create());
       this.set("module", module);
-      this.set("ariaHidden", false);
-      this.set("newObj", true);
-      $("#add-module-window").modal('show');
+      this.loadColumnsAndShowWindow(GOTAA.ColumnDataMap[type], this.store.createRecord(GOTAA.ModuleDataObjectMap[type]), true);
     },
 
     editModule : function(module) {
-      this.set("columns", GOTAA.ColumnDataMap.module);
-      this.set("data", module);
-      this.set("ariaHidden", false);
-      this.set("newObj", false);
-      $("#add-module-window").modal('show');
+      this.loadColumnsAndShowWindow(GOTAA.ColumnDataMap.module, module, false);
     },
 
     editData : function(data, module) {
       var type = module.get("type");
-      this.set("columns", GOTAA.ColumnDataMap[type]);
-      this.set("data", data);
       this.set("module", module);
-      this.set("ariaHidden", false);
-      this.set("newObj", false);
-      $("#add-module-window").modal('show');
-    },
-
-    deleteData : function(data, module) {
-      $.ajax({
-        url : "/delete_module_data",
-        data : {
-          id : data.get("idNum"),
-          type : module.get("type"),
-        },
-        method : "GET"
-      }).then(function(retdata) {
-        module.get("data").removeObject(data);
-      });
+      this.loadColumnsAndShowWindow(GOTAA.ColumnDataMap[type], data, false);
     },
   },
 });
 
 GOTAA.ProfileController = Ember.Controller.extend({
-  init : function() {
-    this._super();
-    this.set("columns", GOTAA.ColumnDataMap.invite);
-  },
-
   isEditing : false,
-  columns : Utils.hasMany(ColumnData.ColumnData),
-  data : Ember.Object.create(),
-  ariaHidden : false,
-
-  onOk : function() {
-    var data = this.get("data"), module = this.get("module"),
-        model = this.get("model"), modules = model.get("modules"),
-        newObj = this.get("newObj");
-    $.ajax({url : "/invite_member", data : {data : getJSON(data)}, method : "POST"}).then(function(retdata) {
-      console.log(retdata);
-    }, function(reason) {
-      console.log(reason);
-    });
-    $("#invite-member-window").modal('hide');
-    this.set("ariaHidden", true);
-  },
-
-  onCancel : function() {
-    this.set("data", null);
-    this.set("ariaHidden", true);
-    //$("#invite-member-window").modal('hide');
-  },
 
   actions : {
     editProfile : function() {
@@ -171,21 +180,12 @@ GOTAA.ProfileController = Ember.Controller.extend({
     },
 
     saveProfile : function() {
-      var model = this.get("model");
-      $.ajax({
-        url : "/update_profile",
-        data : {data : getJSON(model)},
-        method : "POST",
-      }).then(function(retdata) {
-        alert("Give this link to member " + retdata.data.url + ".");
+      var model = this.get("model"), store = this.store;
+      GOTAA.saveRecord(model).then(function() {
+        var meta = store.metadataFor("profile");
+        alert("Give this link to member " + meta.url + ".");
       });
       this.set("isEditing", false);
-    },
-
-    inviteMember : function() {
-      this.set("data", Ember.Object.create({parentObj : "dummy"}));
-      this.set("ariaHidden", false);
-      $("#invite-member-window").modal('show');
     },
   },
 });

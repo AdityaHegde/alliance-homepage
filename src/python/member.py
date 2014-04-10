@@ -7,6 +7,7 @@ import re
 import logging
 import webapp2
 import json
+import alliance
 
 def convert_query_to_dict(query):
     return [e.to_dict() for e in query]
@@ -14,6 +15,7 @@ def convert_query_to_dict(query):
 def delete_from_query(query):
     for e in query:
         e.key.delete()
+
 
 class Member(ndb.Model):
     email = ndb.StringProperty()
@@ -78,6 +80,32 @@ def validate_token(token):
     else:
         return 0
 
+
+def validate_user(self):
+    user = users.get_current_user()
+    if user:
+        return user
+    else:
+        self.redirect(users.create_login_url(self.request.uri))
+    return None
+
+def validate_user_is_member(self, user):
+    member = get_member_by_email(user.email())
+    if member:
+        return member
+    else:
+        self.response.out.write(json.dumps(response.failure("401", "Not a Member")))
+    return None
+
+def validate_user_is_leader(self, user):
+    member = get_member_by_email(user.email())
+    if member and is_leader(user.email()):
+        return member
+    else:
+        self.response.out.write(json.dumps(response.failure("401", "Not a Member")))
+    return None
+    
+
 class ValidateToken(webapp2.RequestHandler):
 
     def get(self):
@@ -95,7 +123,7 @@ class ValidateToken(webapp2.RequestHandler):
 class RegisterMember(webapp2.RequestHandler):
 
     def get(self):
-        user = users.get_current_user()
+        user = validate_user(self)
         if user:
             token = get_token(self.request.get('t'))
             logging.warn(token)
@@ -108,46 +136,71 @@ class RegisterMember(webapp2.RequestHandler):
                 self.redirect("/")
             else:
                 self.response.write('Invalid Request! Wrong Email!')
-        else:
-            self.redirect(users.create_login_url(self.request.uri))
 
 
 class AddAdmin(webapp2.RequestHandler):
     def get(self):
-        user = users.get_current_user()
+        user = validate_user(self)
         if user:
-            member = Member()
-            member.permission = "L"
-            member.email = user.email()
-            member.status = 1
-            member.put()
+            member = Member.query(Member.permission == "L").get()
+            if not member:
+                member = Member()
+                member.permission = "L"
+                member.email = user.email()
+                member.status = 1
+                member.put()
+                self.redirect("/")
+            elif member.email == user.email():
+                self.redirect("/")
+            else:
+                self.response.write('Invalid Request! Leader already present!')
 
 
 class UpdateProfile(webapp2.RequestHandler):
     def post(self):
-        user = users.get_current_user()
-        if user:
-            member = get_member_by_email(user.email())
-            if member:
-                memberData = json.loads(self.request.POST['data'])
-                memberData.pop("permission", None)
-                memberData.pop("email", None)
-                memberData.pop("status", None)
-                member.populate(**memberData)
-                member.put()
+        self.response.headers['Content-Type'] = 'application/json' 
+        user = validate_user(self)
+        member = validate_user_is_member(self, user)
+
+        if user and member:
+            params = json.loads(self.request.body)
+            memberData = params['data']
+            memberData.pop("permission", None)
+            memberData.pop("email", None)
+            memberData.pop("status", None)
+            member.populate(**memberData)
+            member.put()
+            self.response.write(json.dumps(response.success("success", {})))
 
 
 class InviteMember(webapp2.RequestHandler):
     def post(self):
-        user = users.get_current_user()
-        if user:
-            member = get_member_by_email(user.email())
-            if member and is_leader(user.email()):
-                memberData = json.loads(self.request.POST['data'])
-                newMember = Member()
-                newMember.populate(**memberData)
-                newMember.put()
-                logging.warn(newMember)
-                token = get_new_token(newMember.email)
-                logging.warn(token)
-                self.response.write(json.dumps(response.success("success", {"url" : "%(host)s/validate?t=%(token)s" % {"host" : self.request.host_url, "token" : token.token},})))
+        self.response.headers['Content-Type'] = 'application/json' 
+        user = validate_user(self)
+        member = validate_user_is_leader(self, user)
+
+        if user and member:
+            memberData = json.loads(self.request.POST['data'])
+            newMember = Member()
+            newMember.populate(**memberData)
+            newMember.put()
+            logging.warn(newMember)
+            token = get_new_token(newMember.email)
+            logging.warn(token)
+            self.response.write(json.dumps(response.success("success", {"url" : "%(host)s/validate?t=%(token)s" % {"host" : self.request.host_url, "token" : token.token},})))
+
+
+class ProfileGetRequest(webapp2.RequestHandler):
+
+    def get(self):
+        self.response.headers['Content-Type'] = 'application/json' 
+        user = validate_user(self)
+        member = validate_user_is_member(self, user)
+        if user and member:
+            allianceObj = alliance.Alliance.query().get()
+            if allianceObj:
+                allianceData = { "alliance" : {"name" : allianceObj.name, "motto" : allianceObj.motto} }
+            else:
+                allianceData = { "alliance" : {} }
+            self.response.out.write(json.dumps(response.success("success", member.to_dict(), allianceData)))
+

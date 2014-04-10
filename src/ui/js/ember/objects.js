@@ -1,82 +1,82 @@
-GOTAA.BaseObject = Ember.Object.extend({
-  userName : "",
-  userMail : "",
-});
+var attr = DS.attr, hasMany = DS.hasMany, belongsTo = DS.belongsTo;
 
-GOTAA.ModuleDataObject = Ember.Object.extend({
-  title : "",
-  desc : "",
-  idNum : null,
+GOTAA.ModuleData = DS.Model.extend({
+  title : attr(),
+  desc : attr(),
+  module : belongsTo("module"),
 });
-GOTAA.ModuleObject = Ember.Object.extend({
-  init : function() {
-    this._super();
-    if(!this.get("data")) {
-      this.set("data", []);
-    }
-  },
-
-  data : Utils.hasMany(GOTAA.ModuleDataObject),
-  title : "",
-  type : "",
-  row : 0,
-  col : 0,
-  idNum : null,
+GOTAA.ModuleData.keys = ['id'];
+GOTAA.ModuleData.apiName = 'moduleData';
+GOTAA.ModuleData.queryParams = ['id', 'modId', 'modType'];
+GOTAA.Module = DS.Model.extend({
+  moduleData : hasMany("module-data"),
+  title : attr(),
+  type : attr(),
+  col : attr('number', {defaultValue : 0}),
   viewObj : Views.SimpleListView,
+  dashboard : belongsTo("dashboard"),
 });
+GOTAA.Module.keys = ['id'];
+GOTAA.Module.apiName = 'module';
+GOTAA.Module.queryParams = ['id'];
+GOTAA.Module.ignoreFieldsOnCreateUpdate = ['moduleData'];
 
-GOTAA.ListInListElementObject = Ember.Object.extend({
-  label : "",
-  data : "",
+/*GOTAA.ListInListElement = DS.Model.extend({
+  label : attr(),
+  data : attr(),
 });
-GOTAA.ListInListDataObject = GOTAA.ModuleObject.extend({
-  dataList : Utils.hasMany(GOTAA.ListInListElementObject),
+GOTAA.ListInListData = DS.Model.extend({
+  dataList : Utils.hasMany(GOTAA.ListInListElement, {async: true}),
 });
-GOTAA.ListInListObject = GOTAA.ModuleObject.extend({
-  data : Utils.hasMany(GOTAA.ListInListDataObject),
+GOTAA.ListInList = DS.Model.extend({
+  moduleData : hasMany(GOTAA.ListInListData),
   viewObj : Views.ListInListView,
-});
+});*/
 
-GOTAA.MemberDataObject = GOTAA.ModuleObject.extend({
-  title : Ember.computed.alias('gotaname'),
-  gotaname : "",
-  name : "",
+GOTAA.FeedData = GOTAA.ModuleData.extend({
+  feedId : attr(),
+  module : belongsTo("feed"),
 });
-GOTAA.MemberObject = GOTAA.ModuleObject.extend({
-  data : Utils.hasMany(GOTAA.MemberDataObject),
-  viewObj : Views.MembersView,
-});
-
-GOTAA.FeedDataObject = GOTAA.ModuleObject.extend({
-  feedId : "",
-});
-GOTAA.FeedObject = GOTAA.ModuleObject.extend({
-  data : Utils.hasMany(GOTAA.FeedDataObject),
+GOTAA.FeedData.keys = ['id'];
+GOTAA.FeedData.apiName = 'moduleData';
+GOTAA.FeedData.queryParams = ['id', 'modId', 'modType'];
+GOTAA.Feed = GOTAA.Module.extend({
+  moduleData : hasMany("feed-data"),
   viewObj : Views.FeedView,
 });
+GOTAA.Feed.keys = ['id'];
+GOTAA.Feed.apiName = 'module';
+GOTAA.Feed.queryParams = ['id'];
+GOTAA.Feed.ignoreFieldsOnCreateUpdate = ['moduleData'];
 
-GOTAA.ChallengeDataObject = GOTAA.ModuleObject.extend({
+GOTAA.ChallengeData = GOTAA.ModuleData.extend({
   status : 0,
-  startsAt : "",
+  startsAt : attr(),
+  module : belongsTo("challenge"),
 });
-GOTAA.ChallengeObject = GOTAA.ModuleObject.extend({
-  data : Utils.hasMany(GOTAA.ChallengeDataObject),
+GOTAA.ChallengeData.keys = ['id'];
+GOTAA.ChallengeData.apiName = 'moduleData';
+GOTAA.ChallengeData.queryParams = ['id', 'modId', 'modType'];
+GOTAA.Challenge = GOTAA.Module.extend({
+  moduleData : hasMany("challenge-data"),
   viewObj : Views.ChallengesView,
 });
+GOTAA.Challenge.keys = ['id'];
+GOTAA.Challenge.apiName = 'module';
+GOTAA.Challenge.queryParams = ['id'];
+GOTAA.Challenge.ignoreFieldsOnCreateUpdate = ['moduleData'];
 
 GOTAA.ModuleObjectMap = {
-  simpleList : GOTAA.ModuleObject,
-  listInList : GOTAA.ListInListObject,
-  members : GOTAA.MemberObject,
-  challenge : GOTAA.ChallengeObject,
-  feed : GOTAA.FeedObject,
+  simpleList : "module",
+  //listInList : GOTAA.ListInList,
+  challenge : "challenge",
+  feed : "feed",
 };
 GOTAA.ModuleDataObjectMap = {
-  simpleList : GOTAA.ModuleDataObject,
-  listInList : GOTAA.ListInListDataObject,
-  members : GOTAA.MemberDataObject,
-  challenge : GOTAA.ChallengeDataObject,
-  feed : GOTAA.FeedDataObject,
+  simpleList : "module-data",
+  //listInList : GOTAA.ListInListData,
+  challenge : "challenge-data",
+  feed : "feed-data",
 };
 
 GOTAA.ModuleColumn = Ember.Object.extend({
@@ -85,49 +85,57 @@ GOTAA.ModuleColumn = Ember.Object.extend({
     this.set("modules", []);
   },
   modules : [],
+  col : 0,
 });
 
-GOTAA.HomeObject = Ember.Object.extend({
-  modules : Utils.hasMany(null, GOTAA.ModuleObjectMap, "type"),
-  modulesArray : function() {
+GOTAA.ModelMap = {
+  module : GOTAA.ModuleObjectMap,
+};
+
+GOTAA.Dashboard = DS.Model.extend({
+  modules : hasMany("module", {polymorphic : true}),
+  modulesArray : Ember.computed('modules.@each', function() {
     var modules = this.get("modules"), modulesArray = [], col = 0,
         curModuleCol = GOTAA.ModuleColumn.create(),
         curModuleColModules = curModuleCol.get("modules");
-    for(var i = 0; i < modules.length; i++) {
-      if(col !== modules[i].get("col")) {
-        col++;
+    for(var i = 0; i < modules.content.length; i++) {
+      if(col !== modules.content[i].get("col")) {
+        col = modules.content[i].get("col");
         modulesArray.pushObject(curModuleCol);
-        curModuleCol = GOTAA.ModuleColumn.create();
+        curModuleCol = GOTAA.ModuleColumn.create({col : col});
         curModuleColModules = curModuleCol.get("modules");
       }
-      curModuleColModules.pushObject(modules[i]);
+      curModuleColModules.pushObject(modules.content[i]);
     }
     modulesArray.pushObject(curModuleCol);
     return modulesArray;
-  }.property('modules.@each'),
+  }),
   leftBar : function() {
     var modulesArray = this.get("modulesArray");
-    return modulesArray && modulesArray[0];
+    return modulesArray && modulesArray.findBy('col', 0);
   }.property('modulesArray.@each'),
   centerBar : function() {
     var modulesArray = this.get("modulesArray");
-    return modulesArray && modulesArray[1];
+    return modulesArray && modulesArray.findBy('col', 1);
   }.property('modulesArray.@each'),
   rightBar : function() {
     var modulesArray = this.get("modulesArray");
-    return modulesArray && modulesArray[2];
+    return modulesArray && modulesArray.findBy('col', 2);
   }.property('modulesArray.@each'),
 });
+GOTAA.Dashboard.keys = ['id'];
+GOTAA.Dashboard.apiName = 'dashboard';
+GOTAA.Dashboard.queryParams = ['id'];
 
 GOTAA.PermissionMap = {
   L : "Leader",
   O : "Officer",
   M : "Member",
 };
-GOTAA.ProfileObject = Ember.Object.extend({
-  email : "",
-  gotaname : "",
-  permission : "",
+GOTAA.Profile = DS.Model.extend({
+  email : attr(),
+  gotaname : attr(),
+  permission : attr(),
   permissionFull : function() {
     var permission = this.get("permission");
     return GOTAA.PermissionMap[permission];
@@ -136,4 +144,39 @@ GOTAA.ProfileObject = Ember.Object.extend({
     return /L/.test(this.get("permission"));
   }.property("permission"),
 });
+GOTAA.Profile.keys = ['email'];
+GOTAA.Profile.apiName = 'profile';
+GOTAA.Profile.queryParams = ['email'];
+
 GOTAA.CurrentProfile = null;
+
+GOTAA.Member = DS.Model.extend({
+  gotaname : attr(),
+  email : attr(),
+  name : function() {
+    return this.get("gotaname") || this.get("email");
+  }.property('gotaname', 'email'),
+  status : attr(),
+  permission : attr(),
+  permissionFull : function() {
+    var permission = this.get("permission");
+    return GOTAA.PermissionMap[permission];
+  }.property("permission"),
+  alliance : belongsTo("alliance"),
+});
+GOTAA.Member.keys = ['email'];
+GOTAA.Member.apiName = 'member';
+GOTAA.Member.queryParams = ['email'];
+
+GOTAA.Alliance = DS.Model.extend({
+  name : attr(),
+  motto : attr(),
+
+  members : hasMany('member'),
+});
+GOTAA.Alliance.keys = ['id'];
+GOTAA.Alliance.apiName = 'alliance';
+GOTAA.Alliance.queryParams = ['id'];
+GOTAA.Alliance.ignoreFieldsOnCreateUpdate = ['members'];
+
+GOTAA.GlobalData = Ember.Object.create();

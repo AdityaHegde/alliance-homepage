@@ -27,7 +27,7 @@ Views.ModuleSideView = Views.ModuleView.extend({
         '</div>' +
       '{{/if}}' +
       '<div class="list-group">' +
-        '{{#each view.moduleObj.data}}' +
+        '{{#each view.moduleObj.moduleData}}' +
           '<a class="list-group-item module-data">' +
             '{{#if GOTAA.CurrentProfile.canEditData}}' +
               '<div class="edit-toolbar">' +
@@ -70,7 +70,7 @@ Views.MembersView = Views.ModuleSideView.extend({
 
 Views.FeedView = Views.ModuleView.extend({
   template : Ember.Handlebars.compile('' +
-    '{{#view Collapsible.CollapsibleGroup groupId="feed-group" data=view.moduleObj.data}}' +
+    '{{#view Collapsible.CollapsibleGroup groupId="feed-group" data=view.moduleObj.moduleData}}' +
       '{{#each view.data}}' +
         '{{#view Collapsible.Collapsible title=title groupId="feed-group" collapseId=feedId}}' +
           '{{desc}}' +

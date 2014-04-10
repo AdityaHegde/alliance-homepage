@@ -31,7 +31,6 @@ ColumnData.ColumnData = Ember.Object.extend({
     if(placeholder) return placeholder;
     return label;
   }.property('label', 'placeholder'),
-  default : null,
   type : "",
   fixedValue : null,
   options : [],

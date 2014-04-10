@@ -21,25 +21,72 @@
           <span class="icon-bar"></span>
           <span class="icon-bar"></span>
         </button>
-        <a class="navbar-brand" href="#">Minstrels and Mayhem</a>
+        {{#link-to 'alliance' class="navbar-brand"}}{{GOTAA.GlobalData.allianceName}}{{/link-to}}
       </div>
       <div class="collapse navbar-collapse" id="navbar-items">
         <ul class="nav navbar-nav">
-          <li id="people-link">{{#link-to 'home'}}Home{{/link-to}}</li>
+          <li id="people-link">{{#link-to 'alliance'}}Alliance{{/link-to}}</li>
+          <li id="people-link">{{#link-to 'dashboard'}}Dashboard{{/link-to}}</li>
           <li id="report-link">{{#link-to 'profile'}}Profile{{/link-to}}</li>
         </ul>
-        <p class="navbar-text navbar-right">Signed in as {{model.userName}}</p>
+        <p class="navbar-text navbar-right">Signed in as {{GOTAA.CurrentProfile.email}}</p>
       </div>
     </nav>
     <div class="container">
       {{outlet}}
     </div>
     <footer class="modal-footer">
-      <a href="https://github.com/AdityaHegde/guild-homepage" target="_blank">Minstrels and Mayhem GOTA Alliance</a> - Powered by <a href="http://emberjs.com" target="_blank">ember.js</a> and <a href="http://getbootstrap.com/css" target="_blank">bootstrap</a>
+      <a href="https://github.com/AdityaHegde/guild-homepage" target="_blank">{{GOTAA.GlobalData.allianceName}} GOTA Alliance</a> - Powered by <a href="http://emberjs.com" target="_blank">ember.js</a> and <a href="http://getbootstrap.com/css" target="_blank">bootstrap</a>
     </footer>
   </script>
 
-  <script type="text/x-handlebars" data-template-name="home">
+  <script type="text/x-handlebars" data-template-name="loading">
+    Loading...
+  </script>
+
+  <script type="text/x-handlebars" data-template-name="index/loading">
+    Loading...
+  </script>
+
+<!--
+  <script type="text/x-handlebars" data-template-name="error">
+    <div class="container">
+      <br>
+      {{#panel-comp title="Error!" class="panel-danger"}}
+      {{/panel-comp}}
+    </div>
+  </script>
+-->
+
+  <script type="text/x-handlebars" data-template-name="alliance">
+    {{#if editing}}
+      <h3 class="text-center">{{view Ember.TextField value=model.name}}</h3>
+      <h4 class="text-center">{{view Ember.TextField value=model.motto}}</h3>
+      <button class="btn btn-primary btn-sm" {{action 'saveAlliance'}}>Save</button>
+    {{else}}
+      <h3 class="text-center">{{model.name}}</h3>
+      <h4 class="text-center">{{model.motto}}</h3>
+      {{#if GOTAA.CurrentProfile.canEditData}}<button class="btn btn-primary btn-sm" {{action 'editAlliance'}}>Edit</button>{{/if}}
+    {{/if}}
+    {{#panel-comp class="members-panel" title="Members" obj=model}}
+      {{#if GOTAA.CurrentProfile.canEditData}}
+        <div class="btn-toolbar">
+          <button class="btn btn-primary" {{action 'inviteMember'}}>Invite Member</button>
+        </div>
+        {{view Modal.AddEditWindow id="invite-member-window" columns=columns data=data preSave=preSave saveCallback=onSave saveCallbackContext=this onCancel=onCancel ariaHidden=ariaHidden}}
+      {{/if}}
+      {{#each model.members}}
+        <div class="col-md-4">
+          {{#panel-comp title=name data=this}}
+            <p>Email : {{email}}</p>
+            <p>Is a {{permissionFull}}</p>
+          {{/panel-comp}}
+        </div>
+      {{/each}}
+    {{/panel-comp}}
+  </script>
+
+  <script type="text/x-handlebars" data-template-name="dashboard">
     {{#if GOTAA.CurrentProfile.canEditData}}
       <div class="btn-toolbar">
         <button class="btn btn-primary" {{action 'addModule'}}>Add Module</button>
@@ -60,7 +107,7 @@
         {{create-view this.viewObj moduleObj=this}}
       {{/each}}
     </div>
-    {{view Modal.AddEditWindow id="add-module-window" columns=columns data=data onOk=onOk onCancel=onCancel actionContext=this ariaHidden=ariaHidden}}
+    {{view Modal.AddEditWindow id="add-module-window" columns=columns data=data preSave=preSave saveCallback=onSave saveCallbackContext=this onCancel=onCancel ariaHidden=ariaHidden}}
   </script>
 
   <script type="text/x-handlebars" data-template-name="profile">
@@ -81,23 +128,17 @@
           <button class="btn btn-primary btn-sm" {{action 'editProfile'}}>Edit Profile</button>
         {{/if}}
       </div>
-      {{#if GOTAA.CurrentProfile.canEditData}}
-        <div class="btn-toolbar">
-          <button class="btn btn-primary" {{action 'inviteMember'}}>Invite Member</button>
-        </div>
-        {{view Modal.AddEditWindow id="invite-member-window" columns=columns data=data onOk=onOk onCancel=onCancel actionContext=this ariaHidden=ariaHidden}}
-      {{/if}}
     </div>
     <div class="col-sm-8">
       {{outlet}}
     </div>
   </script>
 
-  <script src="js/libs/jquery-1.10.2.js"></script>
-  <script src="js/libs/bootstrap.js"></script>
-  <script src="js/libs/handlebars-1.1.2.js"></script>
-  <script src="js/libs/ember.js"></script>
-  <script src="js/libs/ember-data.js"></script>
+  <script src="js/lib/jquery-1.10.2.js"></script>
+  <script src="js/lib/bootstrap.js"></script>
+  <script src="js/lib/handlebars-1.1.2.js"></script>
+  <script src="js/lib/ember.js"></script>
+  <script src="js/lib/ember-data.js"></script>
   <script src="js/utils/utils.js"></script>
   <script src="js/utils/alerts.js"></script>
   <script src="js/utils/panels.js"></script>
@@ -109,13 +150,13 @@
   <script src="js/utils/carousel.js"></script>
   <script src="js/utils/dragdrop.js"></script>
   <script src="js/utils/sort-filter.js"></script>
-  <script src="js/utils/columndata.js"></script>
+  <script src="js/utils/column-data.js"></script>
   <script src="js/ember/app.js"></script>
+  <script src="js/ember/crud-adaptor.js"></script>
   <script src="js/ember/views.js"></script>
   <script src="js/ember/objects.js"></script>
   <script src="js/ember/columndata.js"></script>
   <script src="js/ember/routes.js"></script>
-  <script src="js/ember/controllers.js"></script>
   <script src="js/ember/controllers.js"></script>
   <!-- to activate the test runner, add the "?test" query string parameter -->
   <!--script src="tests/runner.js"></script-->

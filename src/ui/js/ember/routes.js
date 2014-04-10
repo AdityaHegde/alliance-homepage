@@ -1,42 +1,33 @@
 GOTAA.IndexRoute = Ember.Route.extend({
   model : function(params, transtion) {
-    return new Ember.RSVP.Promise(function(resolve, reject) {
-      $.ajax({url : "/page_data"}).done(function(retdata) {
-        if(retdata.status === "0") {
-          GOTAA.CurrentProfile = GOTAA.ProfileObject.create(retdata.data.profile);
-          resolve(GOTAA.BaseObject.create(retdata.data));
-        }
-        else {
-          reject(retdata.message);
-        }
-      }).fail(function(message) {
-        //reject(message);
-        resolve(GOTAA.BaseObject.create({userName : "anonymous"}));
-      });
-    });
+    return this.store.findById('profile', '0');
   },
 
   afterModel : function(model, transition) {
+    GOTAA.CurrentProfile = model;
+    meta = this.store.metadataFor("profile");
+    GOTAA.GlobalData.set("allianceName", meta.alliance.name)
+    GOTAA.GlobalData.set("allianceMotto", meta.alliance.motto)
     if(transition.targetName === 'index.index') {
-      this.transitionTo('home');
+      this.transitionTo('alliance');
     }
   },
 });
 
-GOTAA.HomeRoute = Ember.Route.extend({
+GOTAA.AllianceRoute = Ember.Route.extend({
   model : function(params, transtion) {
-    return new Ember.RSVP.Promise(function(resolve, reject) {
-      $.ajax({url : "/data", method : "POST"}).done(function(retdata) {
-        if(retdata.status === "0") {
-          resolve(GOTAA.HomeObject.create({modules : retdata.data}));
-        }
-        else {
-          reject(retdata.message);
-        }
-      }).fail(function(message) {
-        reject(message);
-      });
-    });
+    if(GOTAA.GlobalData.get("allianceName")) {
+      return this.store.findById('alliance', '0');
+    }
+    else {
+      return this.store.createRecord('alliance');
+    }
+  },
+});
+
+GOTAA.DashboardRoute = Ember.Route.extend({
+  model : function(params, transtion) {
+    return this.store.findById('dashboard', '0');
   },
 });
 

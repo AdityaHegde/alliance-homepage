@@ -78,7 +78,11 @@ Modal.AddEditWindow = Modal.ModalWindow.extend({
   messageLabel : "Saved!",
   message : "Save Failed",
   showAlert : false,
-  saveCallback : null,
+  saveCallback : function() {
+  },
+  saveCallbackContext : null,
+  preSave : function() {
+  },
 
   template : Ember.Handlebars.compile('' +
     '{{#alert-message message=view.message title=view.messageLabel type="error" switchAlert=view.showAlert}}{{/alert-message}}' +
@@ -87,6 +91,29 @@ Modal.AddEditWindow = Modal.ModalWindow.extend({
   showModalMesssage : function(message) {
     this.set("message", message);
     this.set("showAlert", true);
+  },
+
+  onOk : function() {
+    var data = this.get("data"), saveCallback = this.get("saveCallback"),
+        saveCallbackContext = this.get("saveCallbackContext") || this,
+        preSave = this.get("preSave"),
+        that = this, okbtn = $(".ok-btn", this.get("element"))[0];;
+    $(okbtn).attr("disabled", "disabled");
+    preSave.call(saveCallbackContext);
+    GOTAA.saveRecord(data).then(function(data) {
+      saveCallback.call(saveCallbackContext, data);
+      $(okbtn).removeAttr("disabled");
+    }, function(message) {
+      that.showModalMesssage(message);
+      data.rollback();
+      var attrs = data._inFlightAttributes;
+      data._inFlightAttributes = {};
+      for(var f in attrs) {
+        data.set(f, attrs[f]);
+      }
+      GOTAA.backupDataMap = {};
+      $(okbtn).removeAttr("disabled");
+    });
   },
 
 });

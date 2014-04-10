@@ -1,31 +1,39 @@
 SCRIPTS_PATH = build/scripts
-MINIFY_SCRIPT = $(SCRIPTS_PATH)/minifyFilesAndMerge.pl
+MINIFY_SCRIPT = $(SCRIPTS_PATH)/minifyFile.pl
 REPLACE_SCRIPT_TAGS = $(SCRIPTS_PATH)/replaceScriptTags.pl
+GET_FILES = $(SCRIPTS_PATH)/getDeepFiles.pl
+GET_FILES_FLAGS = files
+GET_DIRS_FLAGS = dirs
+GET_ORDER = $(SCRIPTS_PATH)/getOrder.pl
 
 INDEX_PATH = src/ui/index.html
 MINIFIED_APP_JS = ember-app.js
 
 PY_PROD_PATH = prod/python
 PY_PROD_UI_PATH = $(PY_PROD_PATH)/public
-PY_PROD_UI_LIB_PATH = $(PY_PROD_UI_PATH)/libs
+PY_PROD_UI_LIB_PATH = $(PY_PROD_UI_PATH)/lib
+PY_SRC_FILES = $(filter-out public, $(wildcard src/python/*))
 
 JS_SRC_PATH = src/ui/js/
-JS_SRC_LIB_PATH = $(addprefix $(JS_SRC_PATH), libs)
-JS_SRC_FILES = $(filter-out libs, $(notdir $(wildcard $(JS_SRC_PATH)/*)))
+JS_SRC_PACKAGES = utils ember
+JS_SRC_FILES = $(foreach package, $(JS_SRC_PACKAGES), $(shell perl $(GET_ORDER) $(INDEX_PATH) '"js/($(package)/.*?)"'))
+JS_SRC_FILES_NAMES = $(notdir $(JS_SRC_FILES))
+JS_SRC_FILES_FULLPATH = $(addprefix $(JS_SRC_PATH), $(JS_SRC_FILES))
+JS_SRC_LIB_PATH = $(addprefix $(JS_SRC_PATH), lib)
 JS_SRC_LIB_FILES = $(wildcard $(JS_SRC_LIB_PATH)/*)
-JS_OP_FILES = $(JS_SRC_FILES:%.js=%.min.js)
+JS_OP_FILES = $(JS_SRC_FILES_NAMES:%.js=%.min.js)
 
-CSS_SRC_PATH = src/ui/css/
-CSS_SRC_FILES = normalize.css bootstrap.css bootstrap-theme.css style.css
-CSS_OP_FILES = $(CSS_SRC_FILES:%.css=%.min.css)
+CSS_SRC_PATH = src/ui/css
+CSS_SRC_FILES = $(wildcard $(CSS_SRC_PATH)/*)
+CSS_OP_FILES = $(notdir $(CSS_SRC_FILES:%.css=%.min.css))
 
 MINIFY_COMMAND = java
 MINIFY_COMMAND_FLAGS = -jar build/yuicompressor-2.4.8.jar
 
-%.min.js : $(JS_SRC_PATH)%.js
-	$(MINIFY_COMMAND) $(MINIFY_COMMAND_FLAGS) $^ > $@
+%.min.js :
+	$(MINIFY_COMMAND) $(MINIFY_COMMAND_FLAGS) $(filter %$(@:%.min.js=%.js), $(JS_SRC_FILES_FULLPATH)) > $@
 
-%.min.css : $(CSS_SRC_PATH)%.css
+%.min.css : $(CSS_SRC_PATH)/%.css
 	$(MINIFY_COMMAND) $(MINIFY_COMMAND_FLAGS) $^ > $@
 
 #ls -tr to maintain the order
@@ -47,7 +55,7 @@ $(PY_PROD_UI_LIB_PATH) :
 build : build-python build-static build-static-lib
 .PHONY : build
 
-build-python : $(wildcard src/python/*) | $(PY_PROD_PATH)
+build-python : $(PY_SRC_FILES) | $(PY_PROD_PATH)
 	cp -r $^ $(PY_PROD_PATH)
 .PHONY : build-python
 
@@ -75,6 +83,7 @@ DEPLOY_CMD_FLAGS = update
 
 deploy : build
 	$(DEPLOY_CMD) $(DEPLOY_CMD_FLAGS) $(PY_PROD_PATH)
+	rm *.js *.css index.html
 .PHONY : deploy
 
 clean : 

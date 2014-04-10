@@ -5,6 +5,7 @@ EditableTable.EditRowView = Ember.ContainerView.extend({
     this._super();
     var cols = this.get('cols'), row = this.get('row');
     for(var i = 0; i < cols.length; i++) {
+      if(cols[i].get("disabled")) continue;
       this.pushObject(EditableTable.TypeToCellMap[cols[i].type].create({
         col : cols[i],
         row : row,
@@ -35,9 +36,9 @@ EditableTable.EditCellTextInputView = Ember.View.extend({
         '{{#if view.invalidReason}}<span class="help-block text-danger">{{view.invalidReason}}</span>{{/if}}' +
       '{{/if}}' +
     '</div>'),
-  template : Ember.Handlebars.compile('{{input class="form-control" type="text" value=view.val disabled=view.col.fixedValue placeholder=view.col.label}}'),
+  template : Ember.Handlebars.compile('{{input class="form-control" type="text" value=view.val disabled=view.col.fixedValue placeholder=view.col.placeholderActual maxlength=view.col.maxlength}}'),
   classNames : ['form-group'],
-  classNameBindings : ['invalid:has-error', 'invalid:has-feedback'],
+  classNameBindings : ['invalid:has-error', ':has-feedback'],
   col : null,
   row : null,
   labelWidthClass : "col-sm-3",
@@ -58,14 +59,20 @@ EditableTable.EditCellTextInputView = Ember.View.extend({
   //Works as both getter and setter
   val : function(key, value) {
     var col = this.get("col"), row = this.get("row");
+    row._validation = row._validation || {};
     if(arguments.length > 1) {
       if(col.get("validate")) {
         var validVal = col.validateValue(value);
-        if(validVal[0]) row.set("validationFailed", true);
-        else row.set("validationFailed", false);
+        if(validVal[0]) row._validation[col.name] = 1;
+        else delete row._validation[col.name];
         this.set("invalid", validVal[0]);
         this.set("invalidReason", !Ember.isEmpty(validVal[1]) && validVal[1]);
       }
+      var validationFailed = false;
+      for(var c in row._validation) {
+        validationFailed = true;
+      }
+      row.set("validationFailed", validationFailed);
       row.set(col.name, value);
       return value;
     }
@@ -73,23 +80,29 @@ EditableTable.EditCellTextInputView = Ember.View.extend({
       value = row.get(col.name);
       if(col.get("validate")) {
         var validVal = col.validateValue(value);
-        if(validVal[0]) row.set("validationFailed", true);
-        else row.set("validationFailed", false);
+        if(validVal[0]) row._validation[col.name] = 1;
+        else delete row._validation[col.name];
         this.set("invalid", validVal[0]);
         this.set("invalidReason", !Ember.isEmpty(validVal[1]) && validVal[1]);
       }
+      var validationFailed = false;
+      for(var c in row._validation) {
+        validationFailed = true;
+      }
+      row.set("validationFailed", validationFailed);
       return value;
     }
   }.property('col', 'row.@each'),
 });
 
 EditableTable.EditCellTextAreaView = EditableTable.EditCellTextInputView.extend({
-  template : Ember.Handlebars.compile('{{textarea class="form-control" value=view.val disabled=view.col.fixedValue placeholder=view.col.label}}'),
+  template : Ember.Handlebars.compile('{{textarea class="form-control" value=view.val disabled=view.col.fixedValue rows=view.col.rows cols=view.col.cols placeholder=view.col.placeholderActual ' +
+                                                                      'maxlength=view.col.maxlength readonly=view.col.readonly}}'),
 });
 
 EditableTable.EditCellStaticSelectView = EditableTable.EditCellTextInputView.extend({
   template : Ember.Handlebars.compile('{{view Ember.Select class="form-control" content=view.col.options optionValuePath="content.val" optionLabelPath="content.label" ' +
-                                                                               'prompt=view.col.prompt value=view.val disabled=view.col.fixedValue}}'),
+                                                                               'prompt=view.col.prompt value=view.val disabled=view.col.fixedValue maxlength=view.col.maxlength}}'),
 });
 
 //psuedo dynamic : takes options from records
@@ -103,7 +116,7 @@ EditableTable.EditCellDynamicSelectView = EditableTable.EditCellTextInputView.ex
   }.property('view.col'),
 
   template : Ember.Handlebars.compile('{{view Ember.Select class="form-control" content=view.selectOptions optionValuePath="content.val" optionLabelPath="content.label" '+
-                                                                               'prompt=view.col.prompt value=view.val disabled=view.col.fixedValue}}'),
+                                                                               'prompt=view.col.prompt value=view.val disabled=view.col.fixedValue maxlength=view.col.maxlength}}'),
 });
 
 EditableTable.TypeToCellMap = {

@@ -1,8 +1,5 @@
 GOTAA = Ember.Application.create({
   rootElement : "#gota-alliance",
-  ready : function() {
-    $(".ember-application").removeClass("ember-application");
-  },
 });
 
 var
@@ -10,7 +7,8 @@ attr = DS.attr;
 
 GOTAA.Router.map(function() {
   this.resource('index', { path : '' }, function() {
-    this.resource('home', { path : 'home' });
+    this.resource('alliance', { path : 'alliance' });
+    this.resource('dashboard', { path : 'dashboard' });
     this.resource('profile', { path : 'profile' });
   });
 });

@@ -1,4 +1,27 @@
 GOTAA.ColumnDataMap = {
+  allianceshort : [
+    {
+      name : "name",
+      label : "Name",
+      type : "textInput",
+      sortable : true,
+      searchable : true,
+      validations : [
+        {type : 0, invalidMessage : "Cant be empty"},
+      ],
+      maxlength : "100",
+    },
+    {
+      name : "motto",
+      label : "Motto",
+      type : "textInput",
+      sortable : true,
+      searchable : true,
+      validations : [
+      ],
+      maxlength : "200",
+    },
+  ],
   module : [
     {
       name : "title",
@@ -7,7 +30,7 @@ GOTAA.ColumnDataMap = {
       sortable : true,
       searchable : true,
       validations : [
-        {type : 0},
+        {type : 0, invalidMessage : "Cant be empty"},
       ],
       maxlength : "100",
     },
@@ -17,15 +40,15 @@ GOTAA.ColumnDataMap = {
       type : "staticSelect",
       options : [
         {val : 'simpleList', label : 'Simple List of Data'},
-        {val : 'listInList', label : 'List of Lists'},
+        //{val : 'listInList', label : 'List of Lists'},
         {val : 'challenge', label : 'Challenge'},
-        {val : 'members', label : 'Members'},
+        //{val : 'members', label : 'Members'},
         {val : 'feed', label : 'Feed'},
       ],
       sortable : true,
       filterable : true,
       validations : [
-        {type : 0},
+        {type : 0, invalidMessage : "Cant be empty"},
       ],
     },
     {
@@ -40,7 +63,7 @@ GOTAA.ColumnDataMap = {
       sortable : true,
       filterable : true,
       validations : [
-        {type : 0},
+        {type : 0, invalidMessage : "Cant be empty"},
       ],
     },
   ],
@@ -50,7 +73,7 @@ GOTAA.ColumnDataMap = {
       label : "Title",
       type : "textInput",
       validations : [
-        {type : 0},
+        {type : 0, invalidMessage : "Cant be empty"},
       ],
       sortable : true,
       searchable : true,
@@ -69,7 +92,7 @@ GOTAA.ColumnDataMap = {
       label : "Title",
       type : "textInput",
       validations : [
-        {type : 0},
+        {type : 0, invalidMessage : "Cant be empty"},
       ],
       sortable : true,
       searchable : true,
@@ -81,7 +104,7 @@ GOTAA.ColumnDataMap = {
       label : "Title",
       type : "textInput",
       validations : [
-        {type : 0},
+        {type : 0, invalidMessage : "Cant be empty"},
       ],
       sortable : true,
       searchable : true,
@@ -91,7 +114,7 @@ GOTAA.ColumnDataMap = {
       label : "Starts At",
       type : "textInput",
       validations : [
-        {type : 0},
+        {type : 0, invalidMessage : "Cant be empty"},
       ],
       sortable : true,
       searchable : true,
@@ -108,7 +131,7 @@ GOTAA.ColumnDataMap = {
       filterable : true,
       fromFile : true,
       validations : [
-        {type : 0},
+        {type : 0, invalidMessage : "Cant be empty"},
       ],
     },
   ],
@@ -118,7 +141,7 @@ GOTAA.ColumnDataMap = {
       label : "Title",
       type : "textInput",
       validations : [
-        {type : 0},
+        {type : 0, invalidMessage : "Cant be empty"},
       ],
       sortable : true,
       searchable : true,
@@ -137,7 +160,7 @@ GOTAA.ColumnDataMap = {
       label : "Email",
       type : "textInput",
       validations : [
-        {type : 0},
+        {type : 0, invalidMessage : "Cant be empty"},
       ],
       sortable : true,
       searchable : true,
@@ -154,7 +177,7 @@ GOTAA.ColumnDataMap = {
       sortable : true,
       filterable : true,
       validations : [
-        {type : 0},
+        {type : 0, invalidMessage : "Cant be empty"},
       ],
     },
   ],
