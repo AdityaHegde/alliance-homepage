@@ -43,10 +43,13 @@ MINIFY_COMMAND_FLAGS = -jar build/yuicompressor-2.4.8.jar
 
 #ls -tr to maintain the order
 $(MINIFIED_APP_JS) : $(JS_OP_FILES)
-	ls -tr $^ | perl -n $(MINIFY_SCRIPT) > $@
+	perl $(MINIFY_SCRIPT) $^ > $@
 
 index.html : $(INDEX_PATH)
 	perl $(REPLACE_SCRIPT_TAGS) $(INDEX_PATH) $(MINIFIED_APP_JS) $(JS_SRC_FILES) > $@
+
+test :
+	ls $(JS_SRC_FILES)
 
 $(PY_PROD_PATH) :
 	mkdir -p $(PY_PROD_PATH)
