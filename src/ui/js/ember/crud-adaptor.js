@@ -81,16 +81,18 @@ GOTAA.ApplicationSerializer = DS.RESTSerializer.extend({
         if(relationship.kind === "hasMany") {
           for(var i = 0; i < this.data[relationship.key].length; i++) {
             this.serializer.serializeRelations(relationship.type, payload, this.data[relationship.key][i]);
-            this.data[relationship.key][i] = this.serializer.normalize(relationship.type, this.data[relationship.key][i], plural);
+            this.data[relationship.key][i] = this.serializer.normalize(relationship.type, this.data[relationship.key][i], relationship.type.typeKey);
             this.payload[plural].push(this.data[relationship.key][i]);
             if(relationship.options.polymorphic) {
               //TODO : make the type customizable
+              this.serializer.store.push(GOTAA.ModelMap[relationship.type.typeKey][this.data[relationship.key][i].type], this.data[relationship.key][i]);
               this.data[relationship.key][i] = {
                 id : this.data[relationship.key][i].id,
                 type : GOTAA.ModelMap[relationship.type.typeKey][this.data[relationship.key][i].type],
               };
             }
             else {
+              this.serializer.store.push(relationship.type.typeKey, this.data[relationship.key][i]);
               this.data[relationship.key][i] = this.data[relationship.key][i].id;
             }
           }

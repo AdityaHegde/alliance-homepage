@@ -91,9 +91,9 @@ class FeedData(ndb.Model):
 
 
 moduleTypeToClassMap = {
-    "simpleList" : SimpleModuleData,
-    "listInList" : ListItemModuleData,
-    "members" : member.Member,
+    "module" : SimpleModuleData,
+    #"listInList" : ListItemModuleData,
+    #"members" : member.Member,
     "challenge" : ChallengeModuleData,
     "feed" : FeedData,
 }

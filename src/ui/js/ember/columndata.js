@@ -22,7 +22,7 @@ GOTAA.ColumnDataMap = {
       maxlength : "200",
     },
   ],
-  module : [
+  addmodule : [
     {
       name : "title",
       label : "Title",
@@ -39,7 +39,7 @@ GOTAA.ColumnDataMap = {
       label : "Type",
       type : "staticSelect",
       options : [
-        {val : 'simpleList', label : 'Simple List of Data'},
+        {val : 'module', label : 'Simple List of Data'},
         //{val : 'listInList', label : 'List of Lists'},
         {val : 'challenge', label : 'Challenge'},
         //{val : 'members', label : 'Members'},
@@ -67,7 +67,7 @@ GOTAA.ColumnDataMap = {
       ],
     },
   ],
-  simpleList : [
+  module : [
     {
       name : "title",
       label : "Title",

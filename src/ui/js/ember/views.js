@@ -72,7 +72,7 @@ Views.FeedView = Views.ModuleView.extend({
   template : Ember.Handlebars.compile('' +
     '{{#view Collapsible.CollapsibleGroup groupId="feed-group" data=view.moduleObj.moduleData}}' +
       '{{#each view.data}}' +
-        '{{#view Collapsible.Collapsible title=title groupId="feed-group" collapseId=feedId}}' +
+        '{{#view Collapsible.Collapsible title=title groupId="feed-group" collapseId=id}}' +
           '{{desc}}' +
         '{{/view}}' +
       '{{/each}}' +

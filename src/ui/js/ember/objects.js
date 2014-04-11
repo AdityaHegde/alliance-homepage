@@ -67,13 +67,13 @@ GOTAA.Challenge.queryParams = ['id'];
 GOTAA.Challenge.ignoreFieldsOnCreateUpdate = ['moduleData'];
 
 GOTAA.ModuleObjectMap = {
-  simpleList : "module",
+  module : "module",
   //listInList : GOTAA.ListInList,
   challenge : "challenge",
   feed : "feed",
 };
 GOTAA.ModuleDataObjectMap = {
-  simpleList : "module-data",
+  module : "module-data",
   //listInList : GOTAA.ListInListData,
   challenge : "challenge-data",
   feed : "feed-data",

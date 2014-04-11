@@ -154,7 +154,7 @@ GOTAA.DashboardController = GOTAA.ModelOperationController.extend({
 
   actions : {
     addModule : function() {
-      this.loadColumnsAndShowWindow(GOTAA.ColumnDataMap.module, this.store.createRecord("module"), true);
+      this.loadColumnsAndShowWindow(GOTAA.ColumnDataMap.addmodule, this.store.createRecord("module"), true);
     },
 
     addData : function(module) {
