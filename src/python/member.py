@@ -202,7 +202,7 @@ class InviteMember(webapp2.RequestHandler):
                 newMember.put()
                 token = get_new_token(newMember.email)
                 url = "%(host)s/validate?t=%(token)s" % {"host" : self.request.host_url, "token" : token.token}
-                sender_address = "admin@minstrel-and-mayhem.appspotmail.com"
+                sender_address = member.email
                 subject = "Confirm your membership"
                 body = """
 Thank you for creating an account! Please confirm your email address by
