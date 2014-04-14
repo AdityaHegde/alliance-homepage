@@ -10,6 +10,9 @@ GOTAA.IndexRoute = Ember.Route.extend({
     GOTAA.GlobalData.set("profile", model);
     meta = this.store.metadataFor("profile");
     GOTAA.GlobalData.set("allianceName", meta.alliance.name);
+    if(meta.alliance.name) {
+      document.title = meta.alliance.name;
+    }
     GOTAA.GlobalData.set("allianceMotto", meta.alliance.motto);
 
     for(var i = 0; i < meta.editableModules.length; i++) {

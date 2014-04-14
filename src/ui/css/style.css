@@ -39,3 +39,7 @@
 .permission-list {
   width:30%;
 }
+
+.feed-item {
+  position:relative;
+}

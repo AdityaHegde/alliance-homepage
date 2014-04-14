@@ -105,7 +105,7 @@ deploy : build
 .PHONY : deploy
 
 clean-prod : 
-	rm -rf $(PY_PROD_PATH)/*
+	rm -rf $(PY_PROD_PATH)
 .PHONY : clean-prod
 
 clean : 
@@ -118,5 +118,5 @@ git-push :
 	git push
 .PHONY : git-push
 
-release : git-push clean-prod deploy clean
+release : clean-prod git-push deploy clean
 .PHONY : release

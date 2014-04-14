@@ -6,10 +6,14 @@ Views.ModuleView = Ember.View.extend({
   layout : Ember.Handlebars.compile('' +
     '<div class="panel-heading"><h3 class="panel-title">{{view.moduleObj.title}}</h3></div>' +
     '<div class="panel-body">' +
+      '<p>{{view.moduleObj.desc}}</p>' +
       '{{#if view.canEdit}}' +
         '<div class="btn-toolbar">' +
           '<button class="btn btn-default btn-sm" {{action "addData" view.moduleObj}}>Add Data</button>' +
           '<button class="btn btn-default btn-sm" {{action "editModule" view.moduleObj}}>Edit Module</button>' +
+          '{{#if GOTAA.GlobalData.profile.isLeader}}' +
+            '<button class="btn btn-default btn-sm" data-toggle="modal" data-target="#add-user-window" {{action "editModulePermission" view}}>Assign Members</button>' +
+          '{{/if}}' +
         '</div>' +
       '{{/if}}' +
       '{{yield}}' +
@@ -33,6 +37,7 @@ Views.ModuleSideView = Views.ModuleView.extend({
   layout : Ember.Handlebars.compile('' +
     '<div class="panel-heading"><h3 class="panel-title">{{title}}</h3></div>' +
     '<div class="panel-body">' +
+      '<p>{{view.moduleObj.desc}}</p>' +
       '{{#if view.canEdit}}' +
         '<div class="btn-toolbar">' +
           '<button class="btn btn-default btn-sm" {{action "addData" view.moduleObj}}>Add Data</button>' +
@@ -86,11 +91,21 @@ Views.MembersView = Views.ModuleSideView.extend({
 
 Views.FeedView = Views.ModuleView.extend({
   template : Ember.Handlebars.compile('' +
-    '{{#view Collapsible.CollapsibleGroup groupId="feed-group" data=view.moduleObj.moduleData}}' +
-      '{{#each view.data}}' +
-        '{{#view Collapsible.Collapsible title=title groupId="feed-group" collapseId=id}}' +
-          '{{desc}}' +
-        '{{/view}}' +
-      '{{/each}}' +
-    '{{/view}}'),
+    '{{#with view as moduleView}}' +
+      '{{#view Collapsible.CollapsibleGroup groupId="feed-group"}}' +
+        '{{#each moduleView.moduleObj.moduleData}}' +
+          '<div class="feed-item">' +
+            '{{#view Collapsible.Collapsible title=title groupId="feed-group" collapseId=id}}' +
+              '{{desc}}' +
+            '{{/view}}' +
+            '{{#if moduleView.canEdit}}' +
+              '<div class="edit-toolbar">' +
+                '<span class="btn btn-link btn-edit" {{action "editData" this moduleView.moduleObj}}><span class="glyphicon glyphicon-pencil"></span></span>' +
+                '<span class="btn btn-link btn-delete" {{action "deleteData" this moduleView.moduleObj}}><span class="glyphicon glyphicon-trash"></span></span>' +
+              '</div>' +
+            '{{/if}}' +
+          '</div>' +
+        '{{/each}}' +
+      '{{/view}}' +
+    '{{/with}}'),
 });

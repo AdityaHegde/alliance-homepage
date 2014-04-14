@@ -52,6 +52,13 @@ GOTAA.ColumnDataMap = {
       ],
     },
     {
+      name : "desc",
+      label : "Description",
+      type : "textareaInput",
+      sortable : true,
+      searchable : true,
+    },
+    {
       name : "col",
       label : "Column",
       type : "staticSelect",
@@ -149,7 +156,7 @@ GOTAA.ColumnDataMap = {
     {
       name : "desc",
       label : "Description",
-      type : "textInput",
+      type : "textareaInput",
       sortable : true,
       searchable : true,
     },

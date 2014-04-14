@@ -11,6 +11,7 @@ GOTAA.ModuleData.queryParams = ['id', 'modId', 'modType'];
 GOTAA.Module = DS.Model.extend({
   moduleData : hasMany("module-data", {async : true}),
   title : attr(),
+  desc : attr(),
   type : attr(),
   col : attr('number', {defaultValue : 0}),
   viewObj : Views.SimpleListView,
