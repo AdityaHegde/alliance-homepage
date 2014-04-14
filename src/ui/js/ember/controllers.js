@@ -11,7 +11,7 @@ GOTAA.ModelOperationController = Ember.Controller.extend({
   columnData : [],
   data : Ember.Object.create(),
   newObj : false,
-  ariaHidden : false,
+  ariaHidden : true,
   modalWindow : null,
 
   loadColumnsAndShowWindow : function(columns, data, newObj) {
@@ -67,9 +67,10 @@ GOTAA.AllianceController = GOTAA.ModelOperationController.extend({
   modalWindow : "#invite-member-window",
 
   postSave : function() {
-    var data = this.get("data"),
+    var data = this.get("data"), meta = this.store.metadataFor("member"),
         model = this.get("model"), members = model.get("members");
     members.pushObject(data);
+    alert("Give this invitation url : "+meta.url+" to the member");
   },
 
   editing : function(key, value) {
@@ -77,7 +78,7 @@ GOTAA.AllianceController = GOTAA.ModelOperationController.extend({
       return value;
     }
     else {
-      return Ember.isEmpty(GOTAA.GlobalData.get("allianceName")) && GOTAA.CurrentProfile.get("canEditData");
+      return Ember.isEmpty(GOTAA.GlobalData.get("allianceName")) && GOTAA.GlobalData.get("canEditAlliance");
     }
   }.property(),
 
@@ -96,7 +97,7 @@ GOTAA.AllianceController = GOTAA.ModelOperationController.extend({
     },
 
     inviteMember : function() {
-      this.loadColumnsAndShowWindow([], this.store.createRecord('member'), true);
+      this.loadColumnsAndShowWindow(null, this.store.createRecord('member'), true);
     },
   },
 });
@@ -123,6 +124,10 @@ GOTAA.DashboardController = GOTAA.ModelOperationController.extend({
     }
   },
 
+  comparator : function(a, b) {
+    return a.get("col") - b.get("col");
+  },
+
   postSave : function() {
     var data = this.get("data"), module = this.get("module"),
         model = this.get("model"), modules = model.get("modules"),
@@ -133,7 +138,7 @@ GOTAA.DashboardController = GOTAA.ModelOperationController.extend({
         dataArr.unshiftObject(data);
       }
       else {
-        modules.pushObject(data);
+        Utils.binaryInsert(modules, data, this.comparator);
       }
     }
   },
@@ -152,6 +157,27 @@ GOTAA.DashboardController = GOTAA.ModelOperationController.extend({
     module.get("moduleData").removeObject(data);
   },
 
+  addingMember : false,
+  modulePermissions : [],
+  members : [],
+  modulePermissionNames : function() {
+    var modulePermissions = this.get("modulePermissions"),
+        members = this.get("members"), modulePermissionNames = [];
+    for(var i = 0; i < modulePermissions.length; i++) {
+      var member = members.findBy("email", modulePermissions[i].get("email"));
+      if(member) {
+        modulePermissionNames.pushObject(Ember.Object.create({
+          name : member.get("name"),
+          memberPermission : modulePermissions[i],
+          member : member,
+        }));
+      }
+    }
+    return modulePermissionNames;
+  }.property("modulePermissions.@each", "members.@each"),
+  selectedMember : null,
+  currentModule : null,
+
   actions : {
     addModule : function() {
       this.loadColumnsAndShowWindow(GOTAA.ColumnDataMap.addmodule, this.store.createRecord("module"), true);
@@ -164,13 +190,45 @@ GOTAA.DashboardController = GOTAA.ModelOperationController.extend({
     },
 
     editModule : function(module) {
-      this.loadColumnsAndShowWindow(GOTAA.ColumnDataMap.module, module, false);
+      this.loadColumnsAndShowWindow(GOTAA.ColumnDataMap.addmodule, module, false);
     },
 
     editData : function(data, module) {
       var type = module.get("type");
       this.set("module", module);
       this.loadColumnsAndShowWindow(GOTAA.ColumnDataMap[type], data, false);
+    },
+
+    editModulePermission : function(module) {
+      this.set("members", this.store.find("member"));
+      this.set("modulePermissions", module.get("modulePermissions"));
+      this.set("currentModule", module);
+    },
+
+    addMember : function() {
+      this.set("addingMember", true);
+    },
+
+    cancelAddMember : function() {
+      this.set("addingMember", false);
+    },
+
+    add : function() {
+      var modulePermission = this.store.createRecord("module-permission", {
+        moduleId : this.get("currentModule").get("moduleObj").get("id"),
+        email : this.get("selectedMember"),
+      }), modulePermissions = this.get("modulePermissions");
+      GOTAA.saveRecord(modulePermission).then(function(data) {
+        GOTAA.GlobalData.get("editableModules").pushObject(modulePermission);
+        modulePermissions.pushObject(modulePermission);
+      });
+    },
+
+    deleteMember : function(modulePermission) {
+      modulePermission.deleteRecord();
+      GOTAA.GlobalData.get("editableModules").removeObject(modulePermission);
+      this.get("modulePermissions").removeObject(modulePermission);
+      GOTAA.saveRecord(modulePermission);
     },
   },
 });
@@ -190,6 +248,17 @@ GOTAA.ProfileController = Ember.Controller.extend({
         alert("Give this link to member " + meta.url + ".");
       });
       this.set("isEditing", false);
+    },
+  },
+});
+
+GOTAA.PermissionController = GOTAA.ModelOperationController.extend({
+  columnData : GOTAA.ColumnDataMap.permission,
+  modalWindow : "#edit-permission-window",
+
+  actions : {
+    editPermission : function(permission) {
+      this.loadColumnsAndShowWindow(GOTAA.ColumnDataMap.permission, permission, false);
     },
   },
 });

@@ -10,6 +10,7 @@ GOTAA.Router.map(function() {
     this.resource('alliance', { path : 'alliance' });
     this.resource('dashboard', { path : 'dashboard' });
     this.resource('profile', { path : 'profile' });
+    this.resource('permission', { path : 'permission' });
   });
 });
 

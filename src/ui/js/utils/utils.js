@@ -8,7 +8,32 @@ Utils.deepSearchArray = function(d, e, k, ak) { //d - data, e - element, k - key
     }
   }
   return false;
-}
+};
+
+Utils.cmp = function(a, b) {
+  return a - b;
+};
+Utils.binarySearch = function(a, e, l, h, c) {
+  var i = Math.floor((h + l) / 2), o = a.objectAt(i);
+  if(l > h) return l;
+  if(c(e, o) >= 0) {
+    return Utils.binarySearch(a, e, i + 1, h, c);
+  }
+  else {
+    return Utils.binarySearch(a, e, l, i - 1, c);
+  }
+};
+Utils.binaryInsert = function(a, e, c) {
+  c = c || Utils.cmp;
+  var len = a.get("length");
+  if(len > 0) {
+    var i = Utils.binarySearch(a, e, 0, a.get("length") - 1, c);
+    a.insertAt(i, e);
+  }
+  else {
+    a.pushObject(e);
+  }
+};
 
 Utils.hasMany = function(modelClass, modelClassMap, modelClassKey) {
   modelClass = modelClass || Ember.Object;

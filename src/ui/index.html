@@ -28,15 +28,16 @@
           <li id="people-link">{{#link-to 'alliance'}}Alliance{{/link-to}}</li>
           <li id="people-link">{{#link-to 'dashboard'}}Dashboard{{/link-to}}</li>
           <li id="report-link">{{#link-to 'profile'}}Profile{{/link-to}}</li>
+          {{#if GOTAA.GlobalData.profile.isLeader}}<li id="report-link">{{#link-to 'permission'}}Permission{{/link-to}}</li>{{/if}}
         </ul>
-        <p class="navbar-text navbar-right">Signed in as {{GOTAA.CurrentProfile.email}}</p>
+        <p class="navbar-text navbar-right">Signed in as {{GOTAA.GlobalData.profile.email}}</p>
       </div>
     </nav>
     <div class="container">
       {{outlet}}
     </div>
     <footer class="modal-footer">
-      <a href="https://github.com/AdityaHegde/guild-homepage" target="_blank">{{GOTAA.GlobalData.allianceName}} GOTA Alliance</a> - Powered by <a href="http://emberjs.com" target="_blank">ember.js</a> and <a href="http://getbootstrap.com/css" target="_blank">bootstrap</a>
+      <a href="https://github.com/AdityaHegde/alliance-homepage" target="_blank">{{GOTAA.GlobalData.allianceName}} GOTA Alliance</a> - Powered by <a href="http://emberjs.com" target="_blank">ember.js</a> and <a href="http://getbootstrap.com/css" target="_blank">bootstrap</a>
     </footer>
   </script>
 
@@ -48,7 +49,6 @@
     Loading...
   </script>
 
-<!--
   <script type="text/x-handlebars" data-template-name="error">
     <div class="container">
       <br>
@@ -56,7 +56,6 @@
       {{/panel-comp}}
     </div>
   </script>
--->
 
   <script type="text/x-handlebars" data-template-name="alliance">
     {{#if editing}}
@@ -66,17 +65,17 @@
     {{else}}
       <h3 class="text-center">{{model.name}}</h3>
       <h4 class="text-center">{{model.motto}}</h3>
-      {{#if GOTAA.CurrentProfile.canEditData}}<button class="btn btn-primary btn-sm" {{action 'editAlliance'}}>Edit</button>{{/if}}
+      {{#if GOTAA.GlobalData.canEditAlliance}}<button class="btn btn-primary btn-sm" {{action 'editAlliance'}}>Edit</button>{{/if}}
     {{/if}}
     {{#panel-comp class="members-panel" title="Members" obj=model}}
-      {{#if GOTAA.CurrentProfile.canEditData}}
+      {{#if GOTAA.GlobalData.canEditMember}}
         <div class="btn-toolbar">
           <button class="btn btn-primary" {{action 'inviteMember'}}>Invite Member</button>
         </div>
         {{view Modal.AddEditWindow id="invite-member-window" columns=columns data=data preSave=preSave saveCallback=onSave saveCallbackContext=this onCancel=onCancel ariaHidden=ariaHidden}}
       {{/if}}
       {{#each model.members}}
-        <div class="col-md-4">
+        <div class="col-sm-4">
           {{#panel-comp title=name data=this}}
             <p>Email : {{email}}</p>
             <p>Is a {{permissionFull}}</p>
@@ -87,7 +86,7 @@
   </script>
 
   <script type="text/x-handlebars" data-template-name="dashboard">
-    {{#if GOTAA.CurrentProfile.canEditData}}
+    {{#if GOTAA.GlobalData.canEditModule}}
       <div class="btn-toolbar">
         <button class="btn btn-primary" {{action 'addModule'}}>Add Module</button>
       </div>
@@ -108,6 +107,25 @@
       {{/each}}
     </div>
     {{view Modal.AddEditWindow id="add-module-window" columns=columns data=data preSave=preSave saveCallback=onSave saveCallbackContext=this onCancel=onCancel ariaHidden=ariaHidden}}
+    {{#view Modal.ModalWindow id="add-user-window" title="Assign Members" onOk=onOk ariaHidden=ariaHidden actionContext=this}}
+      <div class="list-group">
+        {{#each controller.modulePermissionNames}}
+          <a class="list-group-item">
+            <div class="edit-toolbar">
+              <span class="btn btn-link btn-delete" {{action "deleteMember" memberPermission}}><span class="glyphicon glyphicon-trash"></span></span>
+            </div>
+            <h4 class="list-group-item-heading">{{name}}</h4>
+          </a>
+        {{/each}}
+      </div>
+      {{#if controller.addingMember}}
+        {{view Ember.Select content=controller.members optionValuePath="content.email" optionLabelPath="content.name" value=controller.selectedMember prompt="Select"}}
+        <button class="btn btn-default btn-sm" {{action "add"}}>Add</button>
+        <button class="btn btn-default btn-sm" {{action "cancelAddMember"}}>Cancel</button>
+      {{else}}
+        <button class="btn btn-default btn-sm" {{action "addMember"}}>Add Member</button>
+      {{/if}}
+    {{/view}}
   </script>
 
   <script type="text/x-handlebars" data-template-name="profile">
@@ -132,6 +150,27 @@
     <div class="col-sm-8">
       {{outlet}}
     </div>
+  </script>
+
+  <script type="text/x-handlebars" data-template-name="permission">
+    <div class="form-horizontal col-sm-8 clearfix">
+      {{#each model}}
+        <div class="form-group">
+          <label class="col-sm-4 control-label">{{oprn}}</label>
+          <div class="col-sm-2">
+            <div class="form-control-static">
+              {{permissionFull}}
+            </div>
+          </div>
+          <div class="col-sm-4">
+            <div class="form-control-static">
+              <a class="btn-link btn-sm" {{action "editPermission" this}}>Edit</a>
+            </div>
+          </div>
+        </div>
+      {{/each}}
+    </div>
+    {{view Modal.AddEditWindow id="edit-permission-window" columns=columns data=data preSave=preSave saveCallback=onSave saveCallbackContext=this onCancel=onCancel ariaHidden=ariaHidden}}
   </script>
 
   <script src="js/lib/jquery-1.10.2.js"></script>

@@ -9,7 +9,7 @@ GOTAA.ModuleData.keys = ['id'];
 GOTAA.ModuleData.apiName = 'moduleData';
 GOTAA.ModuleData.queryParams = ['id', 'modId', 'modType'];
 GOTAA.Module = DS.Model.extend({
-  moduleData : hasMany("module-data"),
+  moduleData : hasMany("module-data", {async : true}),
   title : attr(),
   type : attr(),
   col : attr('number', {defaultValue : 0}),
@@ -41,7 +41,7 @@ GOTAA.FeedData.keys = ['id'];
 GOTAA.FeedData.apiName = 'moduleData';
 GOTAA.FeedData.queryParams = ['id', 'modId', 'modType'];
 GOTAA.Feed = GOTAA.Module.extend({
-  moduleData : hasMany("feed-data"),
+  moduleData : hasMany("feed-data", {async : true}),
   viewObj : Views.FeedView,
 });
 GOTAA.Feed.keys = ['id'];
@@ -50,7 +50,7 @@ GOTAA.Feed.queryParams = ['id'];
 GOTAA.Feed.ignoreFieldsOnCreateUpdate = ['moduleData'];
 
 GOTAA.ChallengeData = GOTAA.ModuleData.extend({
-  status : 0,
+  started : 0,
   startsAt : attr(),
   module : belongsTo("challenge"),
 });
@@ -58,7 +58,7 @@ GOTAA.ChallengeData.keys = ['id'];
 GOTAA.ChallengeData.apiName = 'moduleData';
 GOTAA.ChallengeData.queryParams = ['id', 'modId', 'modType'];
 GOTAA.Challenge = GOTAA.Module.extend({
-  moduleData : hasMany("challenge-data"),
+  moduleData : hasMany("challenge-data", {async : true}),
   viewObj : Views.ChallengesView,
 });
 GOTAA.Challenge.keys = ['id'];
@@ -90,6 +90,7 @@ GOTAA.ModuleColumn = Ember.Object.extend({
 
 GOTAA.ModelMap = {
   module : GOTAA.ModuleObjectMap,
+  "module-data" : GOTAA.ModuleDataObjectMap,
 };
 
 GOTAA.Dashboard = DS.Model.extend({
@@ -128,9 +129,9 @@ GOTAA.Dashboard.apiName = 'dashboard';
 GOTAA.Dashboard.queryParams = ['id'];
 
 GOTAA.PermissionMap = {
-  L : "Leader",
-  O : "Officer",
-  M : "Member",
+  2 : "Leader",
+  1 : "Officer",
+  0 : "Member",
 };
 GOTAA.Profile = DS.Model.extend({
   email : attr(),
@@ -140,8 +141,8 @@ GOTAA.Profile = DS.Model.extend({
     var permission = this.get("permission");
     return GOTAA.PermissionMap[permission];
   }.property("permission"),
-  canEditData : function() {
-    return /L/.test(this.get("permission"));
+  isLeader : function() {
+    return this.get("permission") === 2;
   }.property("permission"),
 });
 GOTAA.Profile.keys = ['email'];
@@ -162,11 +163,41 @@ GOTAA.Member = DS.Model.extend({
     var permission = this.get("permission");
     return GOTAA.PermissionMap[permission];
   }.property("permission"),
+  isLeader : function() {
+    var permission = this.get("permission");
+    return permission == 2;
+  }.property("permission"),
   alliance : belongsTo("alliance"),
 });
 GOTAA.Member.keys = ['email'];
 GOTAA.Member.apiName = 'member';
 GOTAA.Member.queryParams = ['email'];
+
+GOTAA.Permission = DS.Model.extend({
+  oprn : attr(),
+  permission : attr(),
+  permissionFull : function() {
+    var permission = this.get("permission");
+    return GOTAA.PermissionMap[permission];
+  }.property("permission"),
+});
+GOTAA.Permission.keys = ['oprn'];
+GOTAA.Permission.apiName = 'permission';
+GOTAA.Permission.queryParams = ['oprn'];
+GOTAA.Permission.Operations = [
+  'Alliance',
+  'Member',
+  'Module',
+  'ModuleData',
+];
+
+GOTAA.ModulePermission = DS.Model.extend({
+  email : attr(),
+  moduleId : attr(),
+});
+GOTAA.ModulePermission.keys = ['email', 'moduleId'];
+GOTAA.ModulePermission.apiName = 'modulepermission';
+GOTAA.ModulePermission.queryParams = ['email', 'moduleId'];
 
 GOTAA.Alliance = DS.Model.extend({
   name : attr(),
@@ -179,4 +210,16 @@ GOTAA.Alliance.apiName = 'alliance';
 GOTAA.Alliance.queryParams = ['id'];
 GOTAA.Alliance.ignoreFieldsOnCreateUpdate = ['members'];
 
-GOTAA.GlobalData = Ember.Object.create();
+GOTAA.GlobalDataObject = Ember.Object.extend({
+  permissions : [],
+  editableModules : [],
+  profile : null,
+
+  canEdit : function() {
+    var profile = this.get("profile"), permissions = this.get("permissions");
+    for(var i = 0; i < permissions.length; i++) {
+      this.set("canEdit"+permissions[i].get("oprn"), permissions[i].get("permission") <= profile.get("permission") || profile.get("permission") === 2);
+    }
+  }.observes("permissions.@each.permission", "profile"),
+});
+GOTAA.GlobalData = GOTAA.GlobalDataObject.create();

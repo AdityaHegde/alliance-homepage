@@ -40,7 +40,7 @@ GOTAA.ApplicationAdapter = DS.RESTAdapter.extend({
 
   createRecord : function(store, type, record) {
     var data = this.serialize(record, { includeId: true });
-    GOTAA.backupData(record, type);
+    GOTAA.backupData(record, type, true);
     return this.ajax(this.buildURL(type)+"/create", 'POST', { data : this.getQueryParams(type, data, record, true) });
   },
 
@@ -92,7 +92,8 @@ GOTAA.ApplicationSerializer = DS.RESTSerializer.extend({
               };
             }
             else {
-              this.serializer.store.push(relationship.type.typeKey, this.data[relationship.key][i]);
+              var type = (GOTAA.ModelMap[relationship.type.typeKey] && GOTAA.ModelMap[relationship.type.typeKey][data.type]) || relationship.type.typeKey;
+              this.serializer.store.push(type, this.data[relationship.key][i]);
               this.data[relationship.key][i] = this.data[relationship.key][i].id;
             }
           }
@@ -237,17 +238,23 @@ GOTAA.ApplicationSerializer = DS.RESTSerializer.extend({
 });
 
 GOTAA.getId = function(record, type) {
-  var keys = type.keys || [], ids = [];
-  for(var i = 0; i < keys.length; i++) {
-    ids.push((record.get && record.get(keys[i])) || record[keys[i]]);
+  var id = record.id;
+  if(!id) {
+    var keys = type.keys || [], ids = [];
+    for(var i = 0; i < keys.length; i++) {
+      ids.push((record.get && record.get(keys[i])) || record[keys[i]]);
+    }
+    return ids.join("__");
   }
-  return ids.join("__");
+  else {
+    return id;
+  }
 };
 
 GOTAA.backupDataMap = {};
-GOTAA.backupData = function(record, type) {
+GOTAA.backupData = function(record, type, create) {
   //TODO : make 'new' into a custom new tag extracted from 'type'
-  var data = record.toJSON(), id = GOTAA.getId(record, type) || "new";
+  var data = record.toJSON(), id = (!create && GOTAA.getId(record, type)) || (create && "new");
   GOTAA.backupDataMap[type.typeKey] = GOTAA.backupDataMap[type.typeKey] || {};
   GOTAA.backupDataMap[type.typeKey][id] = data;
   for(var i = 0; i < type.keys.length; i++) {

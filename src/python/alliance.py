@@ -26,10 +26,9 @@ class CreateAlliance(webapp2.RequestHandler):
 
     def post(self):
         self.response.headers['Content-Type'] = 'application/json' 
-        user = member.validate_user(self)
-        memberObj = member.validate_user_is_leader(self, user)
+        memberObj = member.validate_user_is_member_and_can_edit(self, "Alliance")
 
-        if user and memberObj:
+        if memberObj:
             params = json.loads(self.request.body)
             allianceData = params['data']
             alliance = Alliance()
@@ -41,9 +40,8 @@ class GetAlliance(webapp2.RequestHandler):
 
     def get(self):
         self.response.headers['Content-Type'] = 'application/json' 
-        user = member.validate_user(self)
-        memberObj = member.validate_user_is_member(self, user)
-        if user and memberObj:
+        memberObj = member.validate_user_is_member(self)
+        if memberObj:
             members = convert_query_to_dict(member.Member.query().fetch())
             allianceObj = Alliance.query().get()
             allianceData = allianceObj.to_dict()
@@ -55,10 +53,9 @@ class UpdateAlliance(webapp2.RequestHandler):
 
     def post(self):
         self.response.headers['Content-Type'] = 'application/json' 
-        user = validate_user(self)
-        memberObj = validate_user_is_leader(self, user)
+        memberObj = member.validate_user_is_member_and_can_edit(self, "Alliance")
 
-        if user and memberObj:
+        if memberObj:
             params = json.loads(self.request.body)
             allianceData = params['data']
             alliance = Alliance.query().get()

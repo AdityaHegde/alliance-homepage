@@ -49,7 +49,7 @@ class Module(ndb.Model):
     col = ndb.IntegerProperty()
 
 def get_module(id):
-    return Model.query(Module.id == id).get()
+    return Module.query(Module.id == id).get()
 
 def save_module(data, id):
     if id:
@@ -82,7 +82,7 @@ class ChallengeModuleData(ndb.Model):
     id = ndb.IntegerProperty()
     title = ndb.StringProperty()
     startsAt = ndb.StringProperty()
-    status = ndb.IntegerProperty()
+    started = ndb.IntegerProperty()
 
 class FeedData(ndb.Model):
     id = ndb.IntegerProperty()
@@ -107,110 +107,112 @@ class CreateModuleRequest(webapp2.RequestHandler):
 
     def post(self):
         self.response.headers['Content-Type'] = 'application/json' 
-        user = member.validate_user(self)
-        member.validate_user_is_leader(self, user)
-        params = json.loads(self.request.body)
-        moduleData = params['data']
-        moduleObj = Module()
-        moduleObj.populate(**moduleData)
-        moduleObj.id = get_free_id()
-        moduleObj.put()
-        logging.warn(moduleObj)
+        memberObj = member.validate_user_is_member_and_can_edit(self, "Module")
 
-        self.response.out.write(json.dumps(response.success("success", {"id" : moduleObj.id})))
+        if memberObj:
+            params = json.loads(self.request.body)
+            moduleData = params['data']
+            moduleObj = Module()
+            moduleObj.populate(**moduleData)
+            moduleObj.id = get_free_id()
+            moduleObj.put()
+            logging.warn(moduleObj)
+
+            self.response.out.write(json.dumps(response.success("success", {"id" : moduleObj.id})))
 
 
 class UpdateModuleRequest(webapp2.RequestHandler):
 
     def post(self):
         self.response.headers['Content-Type'] = 'application/json' 
-        user = member.validate_user(self)
-        member.validate_user_is_leader(self, user)
+        memberObj = member.validate_user_is_member_and_can_edit(self, "Module")
 
-        params = json.loads(self.request.body)
-        moduleData = params['data']
-        moduleId = moduleData['id']
-        moduleData.pop("id", None)
+        if memberObj:
+            params = json.loads(self.request.body)
+            moduleData = params['data']
+            moduleId = int(params['id'])
+            moduleData.pop("id", None)
 
-        moduleObj = get_module(moduleId)
-        moduleObj.populate(**moduleData)
-        moduleObj.put()
-        logging.warn(moduleObj)
+            moduleObj = get_module(moduleId)
+            moduleObj.populate(**moduleData)
+            moduleObj.put()
+            logging.warn(moduleObj)
 
-        self.response.out.write(json.dumps(response.success("success", {"id" : moduleId})))
+            self.response.out.write(json.dumps(response.success("success", {"id" : moduleId})))
 
 
 class CreateModuleDataRequest(webapp2.RequestHandler):
 
     def post(self):
         self.response.headers['Content-Type'] = 'application/json' 
-        user = member.validate_user(self)
-        member.validate_user_is_leader(self, user)
+        memberObj = member.validate_user_is_member_and_can_edit(self, "ModuleData")
 
-        params = json.loads(self.request.body)
-        moduleData = params['data']
-        moduleId = int(params['modId'])
-        moduleType = params['modType']
-        moduleKey = ndb.Key('Module', moduleId)
+        if memberObj:
+            params = json.loads(self.request.body)
+            moduleData = params['data']
+            moduleId = int(params['modId'])
+            moduleType = params['modType']
+            moduleKey = ndb.Key('Module', moduleId)
 
-        moduleDataClass = moduleTypeToClassMap[moduleType]
-        moduleDataObj = moduleDataClass(parent=moduleKey)
-        moduleDataObj.populate(**moduleData)
-        moduleDataObj.id = get_free_id()
-        moduleDataObj.put()
-        logging.warn(moduleData)
+            moduleDataClass = moduleTypeToClassMap[moduleType]
+            moduleDataObj = moduleDataClass(parent=moduleKey)
+            moduleDataObj.populate(**moduleData)
+            moduleDataObj.id = get_free_id()
+            moduleDataObj.put()
+            logging.warn(moduleData)
 
-        self.response.out.write(json.dumps(response.success("success", {"id" : moduleDataObj.id})))
+            self.response.out.write(json.dumps(response.success("success", {"id" : moduleDataObj.id})))
 
 
 class UpdateModuleDataRequest(webapp2.RequestHandler):
 
     def post(self):
         self.response.headers['Content-Type'] = 'application/json' 
-        user = member.validate_user(self)
-        member.validate_user_is_leader(self, user)
+        memberObj = member.validate_user_is_member_and_can_edit(self, "ModuleData")
 
-        params = json.loads(self.request.body)
-        moduleData = params['data']
-        moduleId = int(params['modId'])
-        moduleType = params['modType']
+        if memberObj:
+            params = json.loads(self.request.body)
+            moduleData = params['data']
+            moduleId = int(params['modId'])
+            moduleType = params['modType']
 
-        moduleKey = ndb.Key('Module', moduleId)
-        moduleDataId = int(params['id'])
-        moduleData.pop("id", None);
+            moduleKey = ndb.Key('Module', moduleId)
+            moduleDataId = int(params['id'])
+            moduleData.pop("id", None);
 
-        moduleDataClass = moduleTypeToClassMap[moduleType]
-        moduleDataObj = get_module_data(moduleKey, moduleDataClass, moduleDataId)
-        moduleDataObj.populate(**moduleData)
-        moduleDataObj.put()
-        logging.warn(moduleData)
+            moduleDataClass = moduleTypeToClassMap[moduleType]
+            moduleDataObj = get_module_data(moduleKey, moduleDataClass, moduleDataId)
+            moduleDataObj.populate(**moduleData)
+            moduleDataObj.put()
+            logging.warn(moduleData)
 
-        self.response.out.write(json.dumps(response.success("success", {"id" : moduleDataId})))
+            self.response.out.write(json.dumps(response.success("success", {"id" : moduleDataId})))
 
 
 class GetDashboardData(webapp2.RequestHandler):
 
     def get(self):
         self.response.headers['Content-Type'] = 'application/json' 
-        user = member.validate_user(self)
-        memberObj = member.validate_user_is_leader(self, user)
-        data = convert_query_to_dict(Module.query().order(Module.col).fetch())
-        for d in data:
-            moduleKey = ndb.Key('Module', d['id'])
-            d['moduleData'] = convert_query_to_dict(moduleTypeToClassMap[d['type']].query(ancestor=moduleKey).fetch()) 
-        self.response.out.write(json.dumps(response.success("success", {"modules" : data})))
+        memberObj = member.validate_user_is_member(self)
+        if memberObj:
+            data = convert_query_to_dict(Module.query().order(Module.col).fetch())
+            for d in data:
+                moduleKey = ndb.Key('Module', d['id'])
+                d['moduleData'] = convert_query_to_dict(moduleTypeToClassMap[d['type']].query(ancestor=moduleKey).fetch()) 
+            self.response.out.write(json.dumps(response.success("success", {"modules" : data})))
 
 
 class DeleteModuleDataRequest(webapp2.RequestHandler):
 
     def get(self):
         self.response.headers['Content-Type'] = 'application/json' 
-        user = member.validate_user(self)
-        member.validate_user_is_leader(self, user)
+        memberObj = member.validate_user_is_member_and_can_edit(self, "ModuleData")
 
-        moduleDataId = int(self.request.get("id"))
-        moduleType = self.request.get("modType")
-        moduleClass = moduleTypeToClassMap[moduleType]
-        moduleDataObj = moduleClass.query(moduleClass.id == moduleDataId).get()
-        moduleDataObj.key.delete()
-        self.response.out.write(json.dumps(response.success("success", {})))
+        if memberObj:
+            moduleDataId = int(self.request.get("id"))
+            moduleType = self.request.get("modType")
+            moduleClass = moduleTypeToClassMap[moduleType]
+            moduleDataObj = moduleClass.query(moduleClass.id == moduleDataId).get()
+            moduleDataObj.key.delete()
+            self.response.out.write(json.dumps(response.success("success", {})))
+

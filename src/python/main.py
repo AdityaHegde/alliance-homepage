@@ -5,6 +5,7 @@ import response
 import member
 import moduledata
 import alliance
+import permission
 
 from google.appengine.api import users
 from google.appengine.ext import ndb
@@ -34,8 +35,13 @@ app = webapp2.WSGIApplication([
     ('/moduleData/update', moduledata.UpdateModuleDataRequest),
     ('/moduleData/delete', moduledata.DeleteModuleDataRequest),
     ('/member/create', member.InviteMember),
+    ('/member/getAll', member.GetAllMembers),
     ('/profile/get', member.ProfileGetRequest),
     ('/profile/update', member.UpdateProfile),
+    ('/permission/create', permission.CreatePermission),
+    ('/permission/update', permission.UpdatePermission),
+    ('/modulepermission/create', permission.CreateModulePermission),
+    ('/modulepermission/delete', permission.DeleteModulePermission),
     ('/validate', member.ValidateToken),
     ('/register', member.RegisterMember),
     ('/admin', member.AddAdmin),

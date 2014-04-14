@@ -8,6 +8,7 @@ import logging
 import webapp2
 import json
 import alliance
+import permission
 
 def convert_query_to_dict(query):
     return [e.to_dict() for e in query]
@@ -21,7 +22,7 @@ class Member(ndb.Model):
     email = ndb.StringProperty()
     gotaname = ndb.StringProperty()
     status = ndb.IntegerProperty()
-    permission = ndb.StringProperty()
+    permission = ndb.IntegerProperty()
 
 class Module(ndb.Model):
     name = ndb.StringProperty()
@@ -89,20 +90,29 @@ def validate_user(self):
         self.redirect(users.create_login_url(self.request.uri))
     return None
 
-def validate_user_is_member(self, user):
-    member = get_member_by_email(user.email())
-    if member:
-        return member
-    else:
-        self.response.out.write(json.dumps(response.failure("401", "Not a Member")))
+
+def validate_user_is_member(self):
+    user = validate_user(self)
+    if user:
+        member = get_member_by_email(user.email())
+        if member:
+            return member
+        else:
+            self.response.out.write(json.dumps(response.failure("401", "Not a Member")))
     return None
 
-def validate_user_is_leader(self, user):
-    member = get_member_by_email(user.email())
-    if member and is_leader(user.email()):
-        return member
-    else:
-        self.response.out.write(json.dumps(response.failure("401", "Not a Member")))
+
+def validate_user_is_member_and_can_edit(self, oprn):
+    user = validate_user(self)
+    if user:
+        member = get_member_by_email(user.email())
+        if member:
+            if permission.check_permission(member, oprn):
+                return member
+            else:
+                self.response.out.write(json.dumps(response.failure("401", "No Permission")))
+        else:
+            self.response.out.write(json.dumps(response.failure("401", "Not a Member")))
     return None
     
 
@@ -142,13 +152,14 @@ class AddAdmin(webapp2.RequestHandler):
     def get(self):
         user = validate_user(self)
         if user:
-            member = Member.query(Member.permission == "L").get()
+            member = Member.query(Member.permission == 2).get()
             if not member:
                 member = Member()
-                member.permission = "L"
+                member.permission = 2
                 member.email = user.email()
                 member.status = 1
                 member.put()
+                permission.createPermissions()
                 self.redirect("/")
             elif member.email == user.email():
                 self.redirect("/")
@@ -159,10 +170,9 @@ class AddAdmin(webapp2.RequestHandler):
 class UpdateProfile(webapp2.RequestHandler):
     def post(self):
         self.response.headers['Content-Type'] = 'application/json' 
-        user = validate_user(self)
-        member = validate_user_is_member(self, user)
+        member = validate_user_is_member(self)
 
-        if user and member:
+        if member:
             params = json.loads(self.request.body)
             memberData = params['data']
             memberData.pop("permission", None)
@@ -176,11 +186,11 @@ class UpdateProfile(webapp2.RequestHandler):
 class InviteMember(webapp2.RequestHandler):
     def post(self):
         self.response.headers['Content-Type'] = 'application/json' 
-        user = validate_user(self)
-        member = validate_user_is_leader(self, user)
+        member = validate_user_is_member_and_can_edit(self, "Member")
 
-        if user and member:
-            memberData = json.loads(self.request.POST['data'])
+        if member:
+            params = json.loads(self.request.body)
+            memberData = params['data']
             if get_member_by_email(memberData['email']):
                 self.response.out.write(json.dumps(response.failure("500", "Email already in use")))
             else:
@@ -190,20 +200,40 @@ class InviteMember(webapp2.RequestHandler):
                 logging.warn(newMember)
                 token = get_new_token(newMember.email)
                 logging.warn(token)
-                self.response.write(json.dumps(response.success("success", {"url" : "%(host)s/validate?t=%(token)s" % {"host" : self.request.host_url, "token" : token.token},})))
+                self.response.write(json.dumps(response.success("success", {"email" : newMember.email}, {
+                  "url" : "%(host)s/validate?t=%(token)s" % {"host" : self.request.host_url, "token" : token.token}
+                })))
 
 
 class ProfileGetRequest(webapp2.RequestHandler):
 
     def get(self):
         self.response.headers['Content-Type'] = 'application/json' 
-        user = validate_user(self)
-        member = validate_user_is_member(self, user)
-        if user and member:
+        member = validate_user_is_member(self)
+        if member:
+            extraData = {}
             allianceObj = alliance.Alliance.query().get()
             if allianceObj:
-                allianceData = { "alliance" : {"name" : allianceObj.name, "motto" : allianceObj.motto} }
+                extraData["alliance"] = { "name" : allianceObj.name, "motto" : allianceObj.motto }
             else:
-                allianceData = { "alliance" : {} }
-            self.response.out.write(json.dumps(response.success("success", member.to_dict(), allianceData)))
+                extraData["alliance"] = {}
+            permissions = permission.Permission.query().fetch()
+            if member.permission == 2:
+                editableModules = permission.ModulePermission.query().fetch()
+            else:
+                editableModules = permission.ModulePermission.query(permission.ModulePermission.email == member.email).fetch()
+            extraData["permissions"] = convert_query_to_dict(permissions)
+            extraData["editableModules"] = convert_query_to_dict(editableModules)
+            self.response.out.write(json.dumps(response.success("success", member.to_dict(), extraData)))
+
+class GetAllMembers(webapp2.RequestHandler):
+
+    def get(self):
+        self.response.headers['Content-Type'] = 'application/json' 
+        member = validate_user_is_member(self)
+
+        if member and member.permission == 2:
+            members = Member.query().fetch()
+            self.response.out.write(json.dumps(response.success("success", convert_query_to_dict(members))))
+
 

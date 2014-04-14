@@ -120,8 +120,8 @@ GOTAA.ColumnDataMap = {
       searchable : true,
     },
     {
-      name : "status",
-      label : "Status",
+      name : "started",
+      label : "Started",
       type : "staticSelect",
       options : [
         {val : 0, label : 'Yet to start'},
@@ -170,9 +170,42 @@ GOTAA.ColumnDataMap = {
       label : "Position",
       type : "staticSelect",
       options : [
-        {val : "L", label : 'Leader'},
-        {val : "O", label : 'Officer'},
-        {val : "M", label : 'Member'},
+        {val : 2, label : 'Leader'},
+        {val : 1, label : 'Officer'},
+        {val : 0, label : 'Member'},
+      ],
+      sortable : true,
+      filterable : true,
+      validations : [
+        {type : 0, invalidMessage : "Cant be empty"},
+      ],
+    },
+  ],
+  permission : [
+    {
+      name : "oprn",
+      label : "Operation",
+      type : "staticSelect",
+      options : [
+        {val : "Alliance", label : "Alliance"},
+        {val : "Member", label : "Member"},
+        {val : "Module", label : "Module"},
+        {val : "ModuleData", label : "ModuleData"},
+      ],
+      sortable : true,
+      filterable : true,
+      validations : [
+        {type : 0, invalidMessage : "Cant be empty"},
+      ],
+    },
+    {
+      name : "permission",
+      label : "Position",
+      type : "staticSelect",
+      options : [
+        {val : 2, label : 'Leader'},
+        {val : 1, label : 'Officer'},
+        {val : 0, label : 'Member'},
       ],
       sortable : true,
       filterable : true,
