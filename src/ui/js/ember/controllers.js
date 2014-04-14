@@ -70,7 +70,6 @@ GOTAA.AllianceController = GOTAA.ModelOperationController.extend({
     var data = this.get("data"), meta = this.store.metadataFor("member"),
         model = this.get("model"), members = model.get("members");
     members.pushObject(data);
-    alert("Give this invitation url : "+meta.url+" to the member");
   },
 
   editing : function(key, value) {

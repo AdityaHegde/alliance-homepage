@@ -1,5 +1,6 @@
 from google.appengine.api import users
 from google.appengine.ext import ndb
+from google.appengine.api import mail
 
 import random
 import response
@@ -193,16 +194,25 @@ class InviteMember(webapp2.RequestHandler):
             memberData = params['data']
             if get_member_by_email(memberData['email']):
                 self.response.out.write(json.dumps(response.failure("500", "Email already in use")))
+            elif not mail.is_email_valid(memberData['email']):
+                self.response.out.write(json.dumps(response.failure("500", "Invalid email address")))
             else:
                 newMember = Member()
                 newMember.populate(**memberData)
                 newMember.put()
-                logging.warn(newMember)
                 token = get_new_token(newMember.email)
-                logging.warn(token)
-                self.response.write(json.dumps(response.success("success", {"email" : newMember.email}, {
-                  "url" : "%(host)s/validate?t=%(token)s" % {"host" : self.request.host_url, "token" : token.token}
-                })))
+                url = "%(host)s/validate?t=%(token)s" % {"host" : self.request.host_url, "token" : token.token}
+                sender_address = "admin@minstrel-and-mayhem.appspotmail.com"
+                subject = "Confirm your membership"
+                body = """
+Thank you for creating an account! Please confirm your email address by
+clicking on the link below:
+
+%s
+""" % url
+
+                mail.send_mail(sender_address, newMember.email, subject, body)
+                self.response.write(json.dumps(response.success("success", {"email" : newMember.email})))
 
 
 class ProfileGetRequest(webapp2.RequestHandler):
