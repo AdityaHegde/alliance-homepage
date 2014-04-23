@@ -1,3 +1,6 @@
+GOTAA.endPoint = {
+  find : "get",
+};
 GOTAA.ApplicationAdapter = DS.RESTAdapter.extend({
   getQueryParams : function(type, query, record, inBody) {
     var extraParams = {};
@@ -7,7 +10,7 @@ GOTAA.ApplicationAdapter = DS.RESTAdapter.extend({
       if(query[type.queryParams[i]] == 'all') delete query[type.queryParams[i]];
     }
     //delete generated field
-    delete query.id;
+    if(!type.retainId) delete query.id;
     if(inBody) {
       //only sent for create / update
       if(type.ignoreFieldsOnCreateUpdate) {
@@ -30,6 +33,11 @@ GOTAA.ApplicationAdapter = DS.RESTAdapter.extend({
     for(var i = 0; i < keys.length; i++) {
       query[keys[i]] = (ids.length > i ? ids[i] : "");
     }
+    if(type.findParams) {
+      for(var i = 0; i < type.findParams.length; i++) {
+        query[type.findParams[i]] = GOTAA.GlobalData.get(type.findParams[i]);
+      }
+    }
     return query;
   },
 
@@ -45,7 +53,7 @@ GOTAA.ApplicationAdapter = DS.RESTAdapter.extend({
   },
 
   find : function(store, type, id) {
-    return this.ajax(this.buildURL(type, id)+"/get", 'GET', { data : this.buildFindQuery(type, id, {}) });
+    return this.ajax(this.buildURL(type, id)+"/"+GOTAA.endPoint.find, 'GET', { data : this.buildFindQuery(type, id, {}) });
   },
 
   findAll : function(store, type) {
@@ -73,14 +81,14 @@ GOTAA.ApplicationSerializer = DS.RESTSerializer.extend({
     this._super(key, relationship);
   },*/
 
-  serializeRelations : function(type, payload, data) {
+  serializeRelations : function(type, payload, data, parent) {
     type.eachRelationship(function(name, relationship) {
       var plural = Ember.String.pluralize(relationship.type.typeKey);
       this.payload[plural] = this.payload[plural] || [];
       if(this.data[relationship.key]) {
         if(relationship.kind === "hasMany") {
           for(var i = 0; i < this.data[relationship.key].length; i++) {
-            this.serializer.serializeRelations(relationship.type, payload, this.data[relationship.key][i]);
+            this.serializer.serializeRelations(relationship.type, payload, this.data[relationship.key][i], this.data);
             this.data[relationship.key][i] = this.serializer.normalize(relationship.type, this.data[relationship.key][i], relationship.type.typeKey);
             this.payload[plural].push(this.data[relationship.key][i]);
             if(relationship.options.polymorphic) {
@@ -97,6 +105,13 @@ GOTAA.ApplicationSerializer = DS.RESTSerializer.extend({
               this.data[relationship.key][i] = this.data[relationship.key][i].id;
             }
           }
+        }
+      }
+      else if(relationship.kind === "belongsTo" && parent) {
+        if(relationship.options.polymorphic) {
+        }
+        else {
+          this.data[relationship.key] = GOTAA.getId(parent, relationship.type);
         }
       }
     }, {payload : payload, data : data, serializer : this});
@@ -191,6 +206,18 @@ GOTAA.ApplicationSerializer = DS.RESTSerializer.extend({
       json.dashboard_type = json.type;
       return json;
     },
+
+    "module-data" : function(json) {
+      return json;
+    },
+
+    "camp-item" : function(json) {
+      return json;
+    },
+
+    "challenge-data" : function(json) {
+      return json;
+    },
   },
 
   serialize : function(record, options) {
@@ -205,6 +232,10 @@ GOTAA.ApplicationSerializer = DS.RESTSerializer.extend({
 
   serializeHash : {
     dashboard : function(record, json) {
+      return json;
+    },
+
+    "challenge-data" : function(record, json) {
       return json;
     },
   },
@@ -261,13 +292,15 @@ GOTAA.backupData = function(record, type, create) {
     if(Ember.isEmpty(data[type.keys[i]])) delete data[type.keys[i]];
   }
   type.eachRelationship(function(name, relationship) {
-    var a = record.get(relationship.key);
-    if(a) {
-      if(relationship.kind == 'hasMany') {
-        this.data[relationship.key] = [];
-        a.forEach(function(item) {
-          this.data[relationship.key].push(GOTAA.backupData(item, relationship.type));
-        }, this);
+    if(relationship.kind === "hasMany") {
+      var a = record.get(relationship.key);
+      if(a) {
+        if(relationship.kind == 'hasMany') {
+          this.data[relationship.key] = [];
+          a.forEach(function(item) {
+            this.data[relationship.key].push(GOTAA.backupData(item, relationship.type));
+          }, this);
+        }
       }
     }
   }, {data : data, record : record});
@@ -284,13 +317,15 @@ GOTAA.retrieveBackup = function(hash, type, hasId) {
     delete GOTAA.backupDataMap[type.typeKey][id];
     Ember.merge(hash, data);
     type.eachRelationship(function(name, relationship) {
-      var da = this.data[relationship.key], ha = this.hash[relationship.key];
-      if(da) {
-        for(var i = 0; i < da.length; i++) {
-          var ele = ha.findBy(relationship.type.keys[0], da[i][relationship.type.keys[0]]);
-          da[i].id = GOTAA.getId(da[i], relationship.type);
-          if(ele) Ember.merge(ele, da[i]);
-          else ha.push(da[i]);
+      if(relationship.kind === "hasMany") {
+        var da = this.data[relationship.key], ha = this.hash[relationship.key];
+        if(da) {
+          for(var i = 0; i < da.length; i++) {
+            var ele = ha.findBy(relationship.type.keys[0], da[i][relationship.type.keys[0]]);
+            da[i].id = GOTAA.getId(da[i], relationship.type);
+            if(ele) Ember.merge(ele, da[i]);
+            else ha.push(da[i]);
+          }
         }
       }
     }, {data : data, hash : hash});

@@ -2,13 +2,13 @@ from google.appengine.api import users
 from google.appengine.ext import ndb
 from google.appengine.api import mail
 
+import modelbase
 import random
 import response
 import re
 import logging
 import webapp2
 import json
-import alliance
 import permission
 
 def convert_query_to_dict(query):
@@ -19,103 +19,67 @@ def delete_from_query(query):
         e.key.delete()
 
 
-class Member(ndb.Model):
+class Member(modelbase.ModelBase):
     email = ndb.StringProperty()
     gotaname = ndb.StringProperty()
     status = ndb.IntegerProperty()
     permission = ndb.IntegerProperty()
 
-class Module(ndb.Model):
-    name = ndb.StringProperty()
-    title = ndb.StringProperty()
-    type = ndb.StringProperty()
-    col = ndb.IntegerProperty()
+    @classmethod
+    def get_key_from_data(model, data):
+        return ndb.Key(model, data['email'])
 
-class InviteToken(ndb.Model):
+class InviteToken(modelbase.ModelBase):
     token = ndb.StringProperty()
     email = ndb.StringProperty()
 
+    @classmethod
+    def get_key_from_data(model, data):
+        return ndb.Key(model, data['token'])
 
-def get_member_by_email(email):
-    member = Member.query(Member.email == email).get()
-    if member and member.status == 1:
-        return member
-    return None
-
-def validate_email(email):
-    member = get_member_by_email(email)
-    if member and member.status == 1:
-        return 1
-    else:
-        return 0
-
-def is_leader(email):
-    member = get_member_by_email(email)
-    if member:
-        p = re.match(r"(L)", member.permission)
-        if p.group(0):
-            return 1
-    return 0
-
-def is_officer(email):
-    member = get_member_by_email(email)
-    if member:
-        p = re.match(r"(O)", member.permission)
-        if p.group(0):
-            return 1
-    return 0
-
-def get_new_token(email):
-    #12 digit hex
-    x = random.randint(0, 281474976710656)
-    token = InviteToken(token="%x" % x, email=email)
-    token.put()
-    return token
-
-def get_token(token):
-    return InviteToken.query(InviteToken.token == token).get()
-
-def validate_token(token):
-    tokenObj = get_token(token)
-    if tokenObj:
-        return 1
-    else:
-        return 0
+    @classmethod
+    def create_model(model, data):
+        #12 digit hex
+        x = random.randint(0, 281474976710656)
+        tokenNum = "%x" % x
+        key = model.get_key_from_data({ "token" : tokenNum })
+        token = model(token=tokenNum, email=data['email'], key=key)
+        token.put()
+        return token
 
 
-def validate_user(self):
-    user = users.get_current_user()
-    if user:
-        return user
-    else:
-        self.redirect(users.create_login_url(self.request.uri))
-    return None
+def validate_user(func):
+    def get_post_user(self):
+        user = users.get_current_user()
+        if user:
+            self.user = user
+            func(self)
+        else:
+            self.redirect(users.create_login_url(self.request.uri))
+    return get_post_user
 
 
-def validate_user_is_member(self):
-    user = validate_user(self)
-    if user:
-        member = get_member_by_email(user.email())
-        if member:
-            return member
+def validate_user_is_member(func):
+    def get_post_member(self):
+        member = Member.query_model({ "email" : self.user.email() })
+        if member and member.status == 1:
+            self.member = member
+            func(self)
         else:
             self.response.out.write(json.dumps(response.failure("401", "Not a Member")))
-    return None
+    return get_post_member
 
 
-def validate_user_is_member_and_can_edit(self, oprn):
-    user = validate_user(self)
-    if user:
-        member = get_member_by_email(user.email())
-        if member:
-            if permission.check_permission(member, oprn):
-                return member
-            else:
-                self.response.out.write(json.dumps(response.failure("401", "No Permission")))
+def validate_user_is_leader(fun):
+    def get_post(self):
+        member = Member.query_model({ "email" : self.user.email() })
+        if member and member.permission >= permission.LEADER_PERMISSION:
+            self.member = member
+            fun(self)
         else:
-            self.response.out.write(json.dumps(response.failure("401", "Not a Member")))
-    return None
-    
+            self.response.out.write(json.dumps(response.failure("401", "Have to be a leader to perform this operation")))
+    return get_post
+
 
 class ValidateToken(webapp2.RequestHandler):
 
@@ -123,7 +87,7 @@ class ValidateToken(webapp2.RequestHandler):
         token = self.request.get('t')
         if token:
             logging.warn(token)
-            if validate_token(token) == 1:
+            if InviteToken.query_model({ "token" : token }):
                 self.redirect("/register?t=%(token)s" % {"token" : token})
             else:
                 self.response.write('Invalid Request Token!')
@@ -133,14 +97,14 @@ class ValidateToken(webapp2.RequestHandler):
 
 class RegisterMember(webapp2.RequestHandler):
 
+    @validate_user
     def get(self):
-        user = validate_user(self)
-        if user:
-            token = get_token(self.request.get('t'))
+        if self.user:
+            token = InviteToken.query_model({ "token" : self.request.get('t') })
             logging.warn(token)
-            logging.warn(user.email())
-            if token and user.email() == token.email:
-                member = Member.query(Member.email == user.email()).get()
+            logging.warn(self.user.email())
+            if token and self.user.email() == token.email:
+                member = Member.query_model({ "email" : self.user.email() })
                 member.status = 1
                 member.put()
                 token.key.delete()
@@ -149,60 +113,42 @@ class RegisterMember(webapp2.RequestHandler):
                 self.response.write('Invalid Request! Wrong Email!')
 
 
-class AddAdmin(webapp2.RequestHandler):
-    def get(self):
-        user = validate_user(self)
-        if user:
-            member = Member.query(Member.permission == 2).get()
-            if not member:
-                member = Member()
-                member.permission = 2
-                member.email = user.email()
-                member.status = 1
-                member.put()
-                permission.createPermissions()
-                self.redirect("/")
-            elif member.email == user.email():
-                self.redirect("/")
-            else:
-                self.response.write('Invalid Request! Leader already present!')
-
-
 class UpdateProfile(webapp2.RequestHandler):
+
+    @validate_user
+    @validate_user_is_member
     def post(self):
         self.response.headers['Content-Type'] = 'application/json' 
-        member = validate_user_is_member(self)
-
-        if member:
+        if self.member:
             params = json.loads(self.request.body)
             memberData = params['data']
             memberData.pop("permission", None)
             memberData.pop("email", None)
             memberData.pop("status", None)
-            member.populate(**memberData)
-            member.put()
+            self.member.populate(**memberData)
+            self.member.put()
             self.response.write(json.dumps(response.success("success", {})))
 
 
 class InviteMember(webapp2.RequestHandler):
+
+    @validate_user
+    @validate_user_is_member
+    @permission.can_edit("Member")
     def post(self):
         self.response.headers['Content-Type'] = 'application/json' 
-        member = validate_user_is_member_and_can_edit(self, "Member")
-
-        if member:
+        if self.member:
             params = json.loads(self.request.body)
             memberData = params['data']
-            if get_member_by_email(memberData['email']):
+            if Member.query_model(memberData):
                 self.response.out.write(json.dumps(response.failure("500", "Email already in use")))
             elif not mail.is_email_valid(memberData['email']):
                 self.response.out.write(json.dumps(response.failure("500", "Invalid email address")))
             else:
-                newMember = Member()
-                newMember.populate(**memberData)
-                newMember.put()
-                token = get_new_token(newMember.email)
+                newMember = Member.create_model(memberData)
+                token = InviteToken.create_model({ "email" : newMember.email })
                 url = "%(host)s/validate?t=%(token)s" % {"host" : self.request.host_url, "token" : token.token}
-                sender_address = member.email
+                sender_address = self.member.email
                 subject = "Confirm your membership"
                 body = """
 Thank you for creating an account! Please confirm your email address by
@@ -215,35 +161,64 @@ clicking on the link below:
                 self.response.write(json.dumps(response.success("success", {"email" : newMember.email})))
 
 
-class ProfileGetRequest(webapp2.RequestHandler):
-
-    def get(self):
-        self.response.headers['Content-Type'] = 'application/json' 
-        member = validate_user_is_member(self)
-        if member:
-            extraData = {}
-            allianceObj = alliance.Alliance.query().get()
-            if allianceObj:
-                extraData["alliance"] = { "name" : allianceObj.name, "motto" : allianceObj.motto }
-            else:
-                extraData["alliance"] = {}
-            permissions = permission.Permission.query().fetch()
-            if member.permission == 2:
-                editableModules = permission.ModulePermission.query().fetch()
-            else:
-                editableModules = permission.ModulePermission.query(permission.ModulePermission.email == member.email).fetch()
-            extraData["permissions"] = convert_query_to_dict(permissions)
-            extraData["editableModules"] = convert_query_to_dict(editableModules)
-            self.response.out.write(json.dumps(response.success("success", member.to_dict(), extraData)))
-
 class GetAllMembers(webapp2.RequestHandler):
 
+    @validate_user
+    @validate_user_is_member
     def get(self):
         self.response.headers['Content-Type'] = 'application/json' 
-        member = validate_user_is_member(self)
-
-        if member and member.permission == 2:
+        if self.member:
             members = Member.query().fetch()
             self.response.out.write(json.dumps(response.success("success", convert_query_to_dict(members))))
 
+
+#put it here to workaround circular dependancies
+class CreatePermission(webapp2.RequestHandler):
+
+    @validate_user
+    @validate_user_is_leader
+    def post(self):
+        self.response.headers['Content-Type'] = 'application/json' 
+        if self.member:
+            params = json.loads(self.request.body)
+            permissionObj = permission.Permission.create_model(params['data'])
+            self.response.out.write(json.dumps(response.success("success", {"id" : permissionObj.oprn})))
+
+
+class UpdatePermission(webapp2.RequestHandler):
+
+    @validate_user
+    @validate_user_is_leader
+    def post(self):
+        self.response.headers['Content-Type'] = 'application/json' 
+        if self.member:
+            params = json.loads(self.request.body)
+            permissionObj = permission.Permission.update_model(params['data'])
+            self.response.out.write(json.dumps(response.success("success", {"id" : permissionObj.oprn})))
+
+
+class CreateModulePermission(webapp2.RequestHandler):
+
+    @validate_user
+    @validate_user_is_leader
+    def post(self):
+        self.response.headers['Content-Type'] = 'application/json' 
+        if self.member:
+            params = json.loads(self.request.body)
+            if permission.ModulePermission.query_model(params):
+                self.response.out.write(json.dumps(response.failure("500", "Member already has permission")))
+            else:
+                modPerm = permission.ModulePermission.create_model(params['data'])
+                modPerm.put()
+                self.response.out.write(json.dumps(response.success("success", { "id" : "%(modId)s_%(email)s" % { "modId" : modPerm.moduleId, "email" : modPerm.email } })))
+
+class DeleteModulePermission(webapp2.RequestHandler):
+
+    @validate_user
+    @validate_user_is_leader
+    def get(self):
+        self.response.headers['Content-Type'] = 'application/json' 
+        if self.member:
+            permission.ModulePermission.delete_model({ "moduleId" : self.request.get("moduleId"), "email" : self.request.get("email") })
+            self.response.out.write(json.dumps(response.success("success", {})))
 

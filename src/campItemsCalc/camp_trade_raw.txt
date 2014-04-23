@@ -1,0 +1,400 @@
+==[[File:Upgrade.png]] '''Upgrades'''==
+==='''Upgrade to Level 1'''===
+{|border="0" cellpadding="1" cellspacing="1" class="article-table" style="width: 500px;"
+|-
+!scope="col"|Resource
+!scope="col" style="text-align:center;"|Silver<br />{{Silver}}
+!scope="col" style="text-align:center;"|[[File:Time_Icon.png]]
+!scope="col" style="text-align:center;"|[[Cloth]]<br />[[File:Cloth.jpg|75px]]
+!scope="col" style="text-align:center;"|[[Grain]]<br />[[File:Grains.jpg|75px]]
+!scope="col" style="text-align:center;"|[[Smallfolk]]<br />[[File:Smallfolk.jpg|75px]]
+!scope="col"|
+|-
+|Qty
+|style="text-align:center;"|10,000
+|style="text-align:center;"|10m
+|style="text-align:center;"|20
+|style="text-align:center;"|10
+|style="text-align:center;"|10
+|
+|}
+
+==='''Upgrade to Level 2'''===
+{|border="0" cellpadding="1" cellspacing="1" class="article-table" style="width: 500px;"
+|-
+!scope="col"|Resource
+!scope="col" style="text-align:center;"|Silver<br />{{Silver}}
+!scope="col" style="text-align:center;"|[[File:Time_Icon.png]]
+!scope="col" style="text-align:center;"|[[Wood]]<br />[[File:Wood.jpg|75px]]
+!scope="col" style="text-align:center;"|[[Fur]]<br />[[File:Fur.jpg|75px]]
+!scope="col" style="text-align:center;"|[[Horse]]<br />[[File:Horse.jpg|75px]]
+!scope="col"|
+|-
+|Qty
+|style="text-align:center;"|25,000
+|style="text-align:center;"|1h
+|style="text-align:center;"|30
+|style="text-align:center;"|30
+|style="text-align:center;"|20
+|
+|}
+
+==='''Upgrade to Level 3'''===
+{|border="0" cellpadding="1" cellspacing="1" class="article-table" style="width: 500px;"
+|-
+!scope="col"|Resource
+!scope="col" style="text-align:center;"|Silver<br />{{Silver}}
+!scope="col" style="text-align:center;"|[[File:Time_Icon.png]]
+!scope="col" style="text-align:center;"|[[Stone]]<br />[[File:Stone.jpg|75px]]
+!scope="col" style="text-align:center;"|[[Ore]]<br />[[File:Ore.jpg|75px]]
+!scope="col" style="text-align:center;"|[[Fish]]<br />[[File:Fish.jpg|75px]]
+!scope="col"|
+|-
+|Qty
+|style="text-align:center;"|55,000
+|style="text-align:center;"|1h
+|style="text-align:center;"|45
+|style="text-align:center;"|40
+|style="text-align:center;"|35
+|
+|}
+
+==='''Upgrade to Level 4'''===
+{|border="0" cellpadding="1" cellspacing="1" class="article-table" style="width: 500px;"
+|-
+!scope="col"|Resource
+!scope="col" style="text-align:center;"|Silver<br />{{Silver}}
+!scope="col" style="text-align:center;"|[[File:Time_Icon.png]]
+!scope="col" style="text-align:center;"|[[Leather-bound Book]]<br />[[File:Leather-bound Book.jpg|75px]]
+!scope="col" style="text-align:center;"|[[Silver Chain]]<br />[[File:Silver Chain.jpg|75px]]
+!scope="col" style="text-align:center;"|[[Red Gem]]<br />[[File:Red Gem.jpg|75px]]
+!scope="col"|
+|-
+|Qty
+|style="text-align:center;"|70,000
+|style="text-align:center;"|2h
+|style="text-align:center;"|7
+|style="text-align:center;"|7
+|style="text-align:center;"|7
+|
+|}
+
+==='''Upgrade to Level 5'''===
+{|border="0" cellpadding="1" cellspacing="1" class="article-table" style="width: 500px;"
+|-
+!scope="col"|Resource
+!scope="col" style="text-align:center;"|Silver<br />{{Silver}}
+!scope="col" style="text-align:center;"|[[File:Time_Icon.png]]
+!scope="col" style="text-align:center;"|[[Trader]]<br />[[File:Trader.jpg|75px]]
+!scope="col" style="text-align:center;"|[[Blue Gem]]s<br />[[File:Blue Gem.jpg|75px]]
+!scope="col" style="text-align:center;"|[[Decorative Blade]]<br />[[File:Decorative Blade.jpg|75px]]
+!scope="col" style="text-align:center;white-space:nowrap;"|<span style="font-weight:bold;">Spoils of your</span><br /><span style="font-weight:bold;">trade camp skill</span><br />[[File:Trade_Icon.png|75px]]
+|-
+|Qty
+|style="text-align:center;"|100,000
+|style="text-align:center;"|3h
+|style="text-align:center;"|50
+|style="text-align:center;"|6
+|style="text-align:center;"|8
+|style="text-align:center;"|10
+|}
+
+==='''Upgrade to Level 6'''===
+{|border="0" cellpadding="1" cellspacing="1" class="article-table" style="width: 500px;"
+|-
+!scope="col"|Resource
+!scope="col" style="text-align:center;"|Silver<br />{{Silver}}
+!scope="col" style="text-align:center;"|[[File:Time_Icon.png]]
+!scope="col" style="text-align:center;"|[[Trader]]<br />[[File:Trader.jpg|75px]]
+!scope="col" style="text-align:center;"|[[Leather-bound Book]]<br />[[File:Leather-bound Book.jpg|75px]]
+!scope="col" style="text-align:center;"|[[Silver Torc]]<br />[[File:Silver Torc.jpg|75px]]
+!scope="col" style="text-align:center;white-space:nowrap;"|<span style="font-weight:bold;">Spoils of your</span><br /><span style="font-weight:bold;">trade camp skill</span><br />[[File:Trade_Icon.png|75px]]
+|-
+|Qty
+|style="text-align:center;"|150,000
+|style="text-align:center;"|4h
+|style="text-align:center;"|100
+|style="text-align:center;"|17
+|style="text-align:center;"|17
+|style="text-align:center;"|25
+|}
+
+==='''Upgrade to Level 7'''===
+{|border="0" cellpadding="1" cellspacing="1" class="article-table" style="width: 500px;"
+|-
+!scope="col"|Resource
+!scope="col" style="text-align:center;"|Silver<br />{{Silver}}
+!scope="col" style="text-align:center;"|[[File:Time_Icon.png]]
+!scope="col" style="text-align:center;"|[[Trader]]<br />[[File:Trader.jpg|75px]]
+!scope="col" style="text-align:center;"|[[Leather-bound Book]]<br />[[File:Leather-bound Book.jpg|75px]]
+!scope="col" style="text-align:center;"|[[Cart]]<br />[[File:Cart of Tools.jpg|75px]]
+!scope="col" style="text-align:center;white-space:nowrap;"|<span style="font-weight:bold;">Spoils of your</span><br /><span style="font-weight:bold;">trade camp skill</span><br />[[File:Trade_Icon.png|75px]]
+|-
+|Qty
+|style="text-align:center;"|220,000
+|style="text-align:center;"|5h
+|style="text-align:center;"|150
+|style="text-align:center;"|25
+|style="text-align:center;"|25
+|style="text-align:center;"|45
+|}
+
+==='''Upgrade to Level 8'''===
+{|border="0" cellpadding="1" cellspacing="1" class="article-table" style="width: 500px;"
+|-
+!scope="col"|Resource
+!scope="col" style="text-align:center;"|Silver<br />{{Silver}}
+!scope="col" style="text-align:center;"|[[File:Time_Icon.png]]
+!scope="col" style="text-align:center;"|[[Trebuchet]]<br />[[File:Trebuchet.jpg|75px]]
+!scope="col" style="text-align:center;"|[[Silver Chain]]<br />[[File:Silver Chain.jpg|75px]]
+!scope="col" style="text-align:center;"|[[Parchment Scroll]]<br />[[File:Parchment Scroll.jpg|75px]]
+!scope="col" style="text-align:center;white-space:nowrap;"|<span style="font-weight:bold;">Spoils of your</span><br /><span style="font-weight:bold;">trade camp skill</span><br />[[File:Trade_Icon.png|75px]]
+|-
+|Qty
+|style="text-align:center;"|310,000
+|style="text-align:center;"|6h
+|style="text-align:center;"|33
+|style="text-align:center;"|33
+|style="text-align:center;"|33
+|style="text-align:center;"|70
+|}
+
+==='''Upgrade to Level 9'''===
+{|border="0" cellpadding="1" cellspacing="1" class="article-table" style="width: 500px;"
+|-
+!scope="col"|Resource
+!scope="col" style="text-align:center;"|Silver<br />{{Silver}}
+!scope="col" style="text-align:center;"|[[File:Time_Icon.png]]
+!scope="col" style="text-align:center;"|[[Trebuchet]]<br />[[File:Trebuchet.jpg|75px]]
+!scope="col" style="text-align:center;"|[[Trader]]<br />[[File:Trader.jpg|75px]]
+!scope="col" style="text-align:center;"|[[Red Gem]]<br />[[File:Red Gem.jpg|75px]]
+!scope="col" style="text-align:center;white-space:nowrap;"|<span style="font-weight:bold;">Spoils of your</span><br /><span style="font-weight:bold;">trade camp skill</span><br />[[File:Trade_Icon.png|75px]]
+|-
+|Qty
+|style="text-align:center;"|420,000
+|style="text-align:center;"|7h
+|style="text-align:center;"|41
+|style="text-align:center;"|250
+|style="text-align:center;"|28
+|style="text-align:center;"|100
+|}
+
+==='''Upgrade to Level 10'''===
+{|border="0" cellpadding="1" cellspacing="1" class="article-table" style="width: 500px;"
+|-
+!scope="col"|Resource
+!scope="col" style="text-align:center;"|Silver<br />{{Silver}}
+!scope="col" style="text-align:center;"|[[File:Time_Icon.png]]
+!scope="col" style="text-align:center;"|[[Trebuchet]]<br />[[File:Trebuchet.jpg|75px]]
+!scope="col" style="text-align:center;"|[[Leather-bound Book]]<br />[[File:Leather-bound Book.jpg|75px]]
+!scope="col" style="text-align:center;"|[[Silver Torc]]<br />[[File:Silver Torc.jpg|75px]]
+!scope="col" style="text-align:center;white-space:nowrap;"|<span style="font-weight:bold;">Spoils of your</span><br /><span style="font-weight:bold;">trade camp skill</span><br />[[File:Trade_Icon.png|75px]]
+|-
+|Qty
+|style="text-align:center;"|550,000
+|style="text-align:center;"|8h
+|style="text-align:center;"|50
+|style="text-align:center;"|50
+|style="text-align:center;"|50
+|style="text-align:center;"|135
+|}
+
+==='''Upgrade to Level 11'''===
+{|border="0" cellpadding="1" cellspacing="1" class="article-table" style="width: 500px;"
+|-
+!scope="col"|Resource
+!scope="col" style="text-align:center;"|Silver<br />{{Silver}}
+!scope="col" style="text-align:center;"|[[File:Time_Icon.png]]
+!scope="col" style="text-align:center;"|[[Catapult]]<br />[[File:Catapult.jpg|75px]]
+!scope="col" style="text-align:center;"|[[Trader]]<br />[[File:Trader.jpg|75px]]
+!scope="col" style="text-align:center;"|[[Vellum Scroll]]<br />[[File:Vellum Scroll.jpg|75px]]
+!scope="col" style="text-align:center;white-space:nowrap;"|<span style="font-weight:bold;">Spoils of your</span><br /><span style="font-weight:bold;">trade camp skill</span><br />[[File:Trade_Icon.png|75px]]
+|-
+|Qty
+|style="text-align:center;"|750,000
+|style="text-align:center;"|9h
+|style="text-align:center;"|19
+|style="text-align:center;"|350
+|style="text-align:center;"|19
+|style="text-align:center;"|200
+|}
+
+==='''Upgrade to Level 12'''===
+{|border="0" cellpadding="1" cellspacing="1" class="article-table" style="width: 500px;"
+|-
+!scope="col"|Resource
+!scope="col" style="text-align:center;"|Silver<br />{{Silver}}
+!scope="col" style="text-align:center;"|[[File:Time_Icon.png]]
+!scope="col" style="text-align:center;"|[[Catapult]]<br />[[File:Catapult.jpg|75px]]
+!scope="col" style="text-align:center;"|[[Merchant]]<br />[[File:Merchant.jpg|75px]]
+!scope="col" style="text-align:center;"|[[Lockbox]]<br />[[File:Lockbox.jpg|75px]]
+!scope="col" style="text-align:center;white-space:nowrap;"|<span style="font-weight:bold;">Spoils of your</span><br /><span style="font-weight:bold;">trade camp skill</span><br />[[File:Trade_Icon.png|75px]]
+|-
+|Qty
+|style="text-align:center;"|1,000,000
+|style="text-align:center;"|10h
+|style="text-align:center;"|22
+|style="text-align:center;"|30
+|style="text-align:center;"|22
+|style="text-align:center;"|275
+|}
+
+==='''Upgrade to Level 13'''===
+{|border="0" cellpadding="1" cellspacing="1" class="article-table" style="width: 500px;"
+|-
+!scope="col"|Resource
+!scope="col" style="text-align:center;"|Silver<br />{{Silver}}
+!scope="col" style="text-align:center;"|[[File:Time_Icon.png]]
+!scope="col" style="text-align:center;"|[[Catapult]]<br />[[File:Catapult.jpg|75px]]
+!scope="col" style="text-align:center;"|[[Wagon]]<br />[[File:Wagon.jpg|75px]]
+!scope="col" style="text-align:center;"|[[Lockbox]]<br />[[File:Lockbox.jpg|75px]]
+!scope="col" style="text-align:center;white-space:nowrap;"|<span style="font-weight:bold;">Spoils of your</span><br /><span style="font-weight:bold;">trade camp skill</span><br />[[File:Trade_Icon.png|75px]]
+|-
+|Qty
+|style="text-align:center;"|1,400,000
+|style="text-align:center;"|11h
+|style="text-align:center;"|25
+|style="text-align:center;"|30
+|style="text-align:center;"|25
+|style="text-align:center;"|360
+|}
+
+==='''Upgrade to Level 14'''===
+{|border="0" cellpadding="1" cellspacing="1" class="article-table" style="width: 500px;"
+|-
+!scope="col"|Resource
+!scope="col" style="text-align:center;"|Silver<br />{{Silver}}
+!scope="col" style="text-align:center;"|[[File:Time_Icon.png]]
+!scope="col" style="text-align:center;"|[[Catapult]]<br />[[File:Catapult.jpg|75px]]
+!scope="col" style="text-align:center;"|[[Wagon]]<br />[[File:Wagon.jpg|75px]]
+!scope="col" style="text-align:center;"|[[Gold Necklace]]<br />[[File:Gold Necklace.jpg|75px]]
+!scope="col" style="text-align:center;white-space:nowrap;"|<span style="font-weight:bold;">Spoils of your</span><br /><span style="font-weight:bold;">trade camp skill</span><br />[[File:Trade_Icon.png|75px]]
+|-
+|Qty
+|style="text-align:center;"|2,000,000
+|style="text-align:center;"|12h
+|style="text-align:center;"|28
+|style="text-align:center;"|32
+|style="text-align:center;"|28
+|style="text-align:center;"|455
+|}
+
+==='''Upgrade to Level 15'''===
+{|border="0" cellpadding="1" cellspacing="1" class="article-table" style="width: 500px;"
+|-
+!scope="col"|Resource
+!scope="col" style="text-align:center;"|Silver<br />{{Silver}}
+!scope="col" style="text-align:center;"|[[File:Time_Icon.png]]
+!scope="col" style="text-align:center;"|[[Catapult]]<br />[[File:Catapult.jpg|75px]]
+!scope="col" style="text-align:center;"|[[Wagon]]<br />[[File:Wagon.jpg|75px]]
+!scope="col" style="text-align:center;"|[[Gold Necklace]]<br />[[File:Gold Necklace.jpg|75px]]
+!scope="col" style="text-align:center;white-space:nowrap;"|<span style="font-weight:bold;">Spoils of your</span><br /><span style="font-weight:bold;">trade camp skill</span><br />[[File:Trade_Icon.png|75px]]
+|-
+|Qty
+|style="text-align:center;"|3,000,000
+|style="text-align:center;"|13h
+|style="text-align:center;"|39
+|style="text-align:center;"|33
+|style="text-align:center;"|33
+|style="text-align:center;"|560
+|}
+
+==='''Upgrade to Level 16'''===
+{|border="0" cellpadding="1" cellspacing="1" class="article-table" style="width: 500px;"
+|-
+!scope="col"|Resource
+!scope="col" style="text-align:center;"|Silver<br />{{Silver}}
+!scope="col" style="text-align:center;"|[[File:Time_Icon.png]]
+!scope="col" style="text-align:center;"|[[Mangonel]]<br />[[File:Mangonel.jpg|75px]]
+!scope="col" style="text-align:center;"|[[Wagon]]<br />[[File:Wagon.jpg|75px]]
+!scope="col" style="text-align:center;"|[[Gold Necklace]]<br />[[File:Gold Necklace.jpg|75px]]
+!scope="col" style="text-align:center;white-space:nowrap;"|<span style="font-weight:bold;">Spoils of your</span><br /><span style="font-weight:bold;">trade camp skill</span><br />[[File:Trade_Icon.png|75px]]
+|-
+|Qty
+|style="text-align:center;"|4,100,000
+|style="text-align:center;"|15h
+|style="text-align:center;"|14
+|style="text-align:center;"|39
+|style="text-align:center;"|39
+|style="text-align:center;"|900
+|}
+
+==='''Upgrade to Level 17'''===
+{|border="0" cellpadding="1" cellspacing="1" class="article-table" style="width: 500px;"
+|-
+!scope="col"|Resource
+!scope="col" style="text-align:center;"|Silver<br />{{Silver}}
+!scope="col" style="text-align:center;"|[[File:Time_Icon.png]]
+!scope="col" style="text-align:center;"|[[Mangonel]]<br />[[File:Mangonel.jpg|75px]]
+!scope="col" style="text-align:center;"|[[Caravan]]<br />[[File:Caravan.jpg|75px]]
+!scope="col" style="text-align:center;"|[[Gold Necklace]]<br />[[File:Gold Necklace.jpg|75px]]
+!scope="col" style="text-align:center;white-space:nowrap;"|Spoils of your<br />trade camp skill<br />[[File:Trade_Icon.png|75px]]
+|-
+|Qty
+|style="text-align:center;"|5,300,000
+|style="text-align:center;"|17h
+|style="text-align:center;"|16
+|style="text-align:center;"|18
+|style="text-align:center;"|44
+|style="text-align:center;"|1120
+|}
+
+==='''Upgrade to Level 18'''===
+{|border="0" cellpadding="1" cellspacing="1" class="article-table" style="width: 500px;"
+|-
+!scope="col"|Resource
+!scope="col" style="text-align:center;"|Silver<br />{{Silver}}
+!scope="col" style="text-align:center;"|[[File:Time_Icon.png]]
+!scope="col" style="text-align:center;"|[[Mangonel]]<br />[[File:Mangonel.jpg|75px]]
+!scope="col" style="text-align:center;"|[[Caravan]]s<br />[[File:Caravan.jpg|75px]]
+!scope="col" style="text-align:center;"|[[Lockbox]]<br />[[File:Lockbox.jpg|75px]]
+!scope="col" style="text-align:center;white-space:nowrap;"|<span style="font-weight:bold;">Spoils of your</span><br /><span style="font-weight:bold;">trade camp skill</span><br />[[File:Trade_Icon.png|75px]]
+|-
+|Qty
+|style="text-align:center;"|6,600,000
+|style="text-align:center;"|19h
+|style="text-align:center;"|18
+|style="text-align:center;"|18
+|style="text-align:center;"|50
+|style="text-align:center;"|1360
+|}
+
+==='''Upgrade to Level 19'''===
+{|border="0" cellpadding="1" cellspacing="1" class="article-table" style="width: 500px;"
+|-
+!scope="col"|Resource
+!scope="col" style="text-align:center;"|Silver<br />{{Silver}}
+!scope="col" style="text-align:center;"|[[File:Time_Icon.png]]
+!scope="col" style="text-align:center;"|[[Mangonel]]<br />[[File:Mangonel.jpg|75px]]
+!scope="col" style="text-align:center;"|[[Caravan]]s<br />[[File:Caravan.jpg|75px]]
+!scope="col" style="text-align:center;"|[[Mercer]]<br />[[File:Mercer.jpg|75px]]
+!scope="col" style="text-align:center;white-space:nowrap;"|<span style="font-weight:bold;">Spoils of your</span><br /><span style="font-weight:bold;">trade camp skill</span><br />[[File:Trade_Icon.png|75px]]
+|-
+|Qty
+|style="text-align:center;"|8,100,000
+|style="text-align:center;"|21h
+|style="text-align:center;"|20
+|style="text-align:center;"|20
+|style="text-align:center;"|20
+|style="text-align:center;"|1620
+|}
+
+==='''Upgrade to Level 20'''===
+{|border="0" cellpadding="1" cellspacing="1" class="article-table" style="width: 500px;"
+|-
+!scope="col"|Resource
+!scope="col" style="text-align:center;"|Silver<br />{{Silver}}
+!scope="col" style="text-align:center;"|[[File:Time_Icon.png]]
+!scope="col" style="text-align:center;"|[[Mangonel]]<br />[[File:Mangonel.jpg|75px]]
+!scope="col" style="text-align:center;"|[[Ore]]<br />[[File:Ore.jpg|75px]]
+!scope="col" style="text-align:center;"|[[Grain]]<br />[[File:Grains.jpg|75px]]
+!scope="col" style="text-align:center;white-space:nowrap;"|<span style="font-weight:bold;">Spoils of your</span><br /><span style="font-weight:bold;">trade camp skill</span><br />[[File:Trade_Icon.png|75px]]
+|-
+|Qty
+|style="text-align:center;"|10,000,000
+|style="text-align:center;"|23h
+|style="text-align:center;"|22
+|style="text-align:center;"|1300
+|style="text-align:center;"|1300
+|style="text-align:center;"|1900
+|}

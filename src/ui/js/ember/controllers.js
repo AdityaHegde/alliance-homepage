@@ -67,8 +67,8 @@ GOTAA.AllianceController = GOTAA.ModelOperationController.extend({
   modalWindow : "#invite-member-window",
 
   postSave : function() {
-    var data = this.get("data"), meta = this.store.metadataFor("member"),
-        model = this.get("model"), members = model.get("members");
+    var data = this.get("data"), meta = this.store.metadatafor("member"),
+        model = this.get("model"), members = GOTAA.GlobalData.get("members");
     members.pushObject(data);
   },
 
@@ -99,6 +99,14 @@ GOTAA.AllianceController = GOTAA.ModelOperationController.extend({
       this.loadColumnsAndShowWindow(null, this.store.createRecord('member'), true);
     },
   },
+
+  col : ColumnData.ColumnData.create({
+    name : "test",
+    btnLabel : "Browse",
+    method : "ReadAsDataURI",
+    accept : "image/*",
+  }),
+  row : Ember.Object.create(),
 });
 
 GOTAA.DashboardController = GOTAA.ModelOperationController.extend({
@@ -137,8 +145,12 @@ GOTAA.DashboardController = GOTAA.ModelOperationController.extend({
         dataArr.unshiftObject(data);
       }
       else {
-        Utils.binaryInsert(modules, data, this.comparator);
+        //Utils.binaryInsert(modules, data, this.comparator);
+        document.location.reload(false);
       }
+    }
+    else if(data instanceof GOTAA.Module) {
+      document.location.reload(false);
     }
   },
 
@@ -177,29 +189,69 @@ GOTAA.DashboardController = GOTAA.ModelOperationController.extend({
   selectedMember : null,
   currentModule : null,
 
+  columnModify : {
+    challenge : function(columnData, model) {
+      for(var i = 3; i <= 5; i++) {
+        if(columnData[i].set) {
+          columnData[i].set("data", GOTAA.GlobalData.get("members"));
+        }
+        else {
+          columnData[i].data = GOTAA.GlobalData.get("members");
+        }
+      }
+    },
+
+    "member-list" : function(columnData, model) {
+      if(columnData[0].set) {
+        columnData[0].set("data", GOTAA.GlobalData.get("members"));
+      }
+      else {
+        columnData[0].data = GOTAA.GlobalData.get("members");
+      }
+    },
+  },
+
   actions : {
     addModule : function() {
+      if(GOTAA.ColumnDataMap.addmodule[3].set) {
+        GOTAA.ColumnDataMap.addmodule[3].set("disabled", false);
+      }
+      else {
+        GOTAA.ColumnDataMap.addmodule[3].disabled = false;
+      }
       this.loadColumnsAndShowWindow(GOTAA.ColumnDataMap.addmodule, this.store.createRecord("module"), true);
     },
 
     addData : function(module) {
       var type = module.get("type");
       this.set("module", module);
+      if(this.columnModify[type]) {
+        this.columnModify[type].call(this, GOTAA.ColumnDataMap[type], this.get("model"));
+      }
       this.loadColumnsAndShowWindow(GOTAA.ColumnDataMap[type], this.store.createRecord(GOTAA.ModuleDataObjectMap[type]), true);
     },
 
     editModule : function(module) {
+      if(GOTAA.ColumnDataMap.addmodule[3].set) {
+        GOTAA.ColumnDataMap.addmodule[3].set("disabled", true);
+      }
+      else {
+        GOTAA.ColumnDataMap.addmodule[3].disabled = true;
+      }
       this.loadColumnsAndShowWindow(GOTAA.ColumnDataMap.addmodule, module, false);
     },
 
     editData : function(data, module) {
       var type = module.get("type");
       this.set("module", module);
+      if(this.columnModify[type]) {
+        this.columnModify[type].call(this, GOTAA.ColumnDataMap[type], this.get("model"));
+      }
       this.loadColumnsAndShowWindow(GOTAA.ColumnDataMap[type], data, false);
     },
 
     editModulePermission : function(module) {
-      this.set("members", this.store.find("member"));
+      this.set("members", GOTAA.GlobalData.get("members"));
       this.set("modulePermissions", module.get("modulePermissions"));
       this.set("currentModule", module);
     },
@@ -228,6 +280,129 @@ GOTAA.DashboardController = GOTAA.ModelOperationController.extend({
       GOTAA.GlobalData.get("editableModules").removeObject(modulePermission);
       this.get("modulePermissions").removeObject(modulePermission);
       GOTAA.saveRecord(modulePermission);
+    },
+
+    expandModule : function(moduleView) {
+      moduleView.set("expanded", false);
+    },
+
+    contribute : function(item, camp, view) {
+      var store = view.get("controller").store,
+          campMemItm = store.getById("camp-member-item", GOTAA.GlobalData.profile.get("email")+"__"+item.get("item"));
+      if(!campMemItm) {
+        campMemItm = store.createRecord("camp-member-item", {
+          item : item.get("item"),
+          qty : 0,
+        });
+      }
+      view.set("campMemItm", campMemItm);
+      item.set("crafting", true);
+    },
+
+    submitCraft : function(item, camp, view) {
+      item.set("crafting", false);
+      var campMemItm = view.get("campMemItm"),
+          moduleObj = view.get("moduleObj"),
+          store = campMemItm.store;
+      GOTAA.GlobalData.setProperties({
+        "type" : camp.get("type"),
+        "fromlevel" : camp.get("fromlevel"),
+        "tolevel" : camp.get("tolevel"),
+      });
+      GOTAA.saveRecord(campMemItm).then(function() {
+        GOTAA.GlobalData.setProperties({
+          "modId" : moduleObj.get("id"),
+          "modType" : moduleObj.get("type"),
+        });
+        camp.reload();
+      });
+    },
+
+    cancelCraft : function(item, camp, view) {
+      item.set("crafting", false);
+    },
+
+    addSelf : function(module) {
+      var type = module.get("type"), coldata = GOTAA.ColumnDataMap["member-list"],
+          record = this.store.createRecord(GOTAA.ModuleDataObjectMap[type]);
+      this.set("module", module);
+      record.set("email", GOTAA.GlobalData.get("profile").get("email"));
+      if(coldata[0].set) {
+        coldata[0].set("fixedValue", "disabled");
+        coldata[0].set("data", [GOTAA.GlobalData.get("members").findBy("email", record.get("email"))]);
+      }
+      else {
+        coldata[0].fixedValue = "disabled";
+        coldata[0].data = [GOTAA.GlobalData.get("members").findBy("email", record.get("email"))];
+      }
+      this.loadColumnsAndShowWindow(coldata, record, true);
+    },
+
+    editDataSelf : function(data, module) {
+      var type = module.get("type"), coldata = GOTAA.ColumnDataMap["member-list"];
+      this.set("module", module);
+      if(coldata[0].set) {
+        coldata[0].set("fixedValue", "disabled");
+        coldata[0].set("data", [GOTAA.GlobalData.get("members").findBy("email", GOTAA.GlobalData.get("profile").get("email"))]);
+      }
+      else {
+        coldata[0].fixedValue = "disabled";
+        coldata[0].data = [GOTAA.GlobalData.get("members").findBy("email", GOTAA.GlobalData.get("profile").get("email"))];
+      }
+      this.loadColumnsAndShowWindow(coldata, data, true);
+    },
+
+    moveLeft : function(module) {
+      $.ajax({
+        url : "/module/moveHorizontal",
+        data : {
+          id : module.get("id"),
+          dir : "left",
+        },
+      }).then(function(data) {
+        document.location.reload(false);
+      });
+    },
+
+    moveRight : function(module) {
+      $.ajax({
+        url : "/module/moveHorizontal",
+        data : {
+          id : module.get("id"),
+          dir : "right",
+        },
+      }).then(function(data) {
+        document.location.reload(false);
+      });
+    },
+
+    moveUp : function(module) {
+      $.ajax({
+        url : "/module/moveVertical",
+        data : {
+          id : module.get("id"),
+          dir : "up",
+        },
+      }).then(function(data) {
+        document.location.reload(false);
+      });
+    },
+
+    moveDown : function(module) {
+      $.ajax({
+        url : "/module/moveVertical",
+        data : {
+          id : module.get("id"),
+          dir : "down",
+        },
+      }).then(function(data) {
+        document.location.reload(false);
+      });
+    },
+
+    openImage : function(image, view) {
+      view.set("imageUrl", image);
+      $(view.get("windowIdHref")).modal("show");
     },
   },
 });

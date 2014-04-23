@@ -51,17 +51,34 @@ GOTAA.AllianceRoute = Ember.Route.extend({
       return this.store.createRecord('alliance');
     }
   },
+
+  afterModel : function(model, transition) {
+    GOTAA.GlobalData.set("members", this.store.find("member"));
+  },
 });
 
 GOTAA.DashboardRoute = Ember.Route.extend({
   model : function(params, transtion) {
     return this.store.findById('dashboard', '0');
   },
+
+  afterModel : function(model, transition) {
+    GOTAA.GlobalData.set("members", this.store.find("member"));
+  },
 });
 
 GOTAA.ProfileRoute = Ember.Route.extend({
   model : function(params, transtion) {
     return GOTAA.GlobalData.get("profile");
+  },
+});
+
+GOTAA.ProfileCamptargetRoute = Ember.Route.extend({
+  model : function(params, transtion) {
+    return Ember.Object.create({
+      camps : this.store.find('camp'),
+      contributions : this.store.find('camp-member-item'),
+    });
   },
 });
 

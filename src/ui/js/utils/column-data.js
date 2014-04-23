@@ -15,6 +15,7 @@ ColumnData.ColumnValidation = Ember.Object.extend({
     switch(type) {
       case 0:  invalid = Ember.isEmpty(value); invalid = invalid || emptyRegex.test(value); break;
       case 1:  invalid = this.get("regexObject").test(value); break;
+      case 2:  invalid = !Date.parse(value); break;
       default: invalid = true;
     }
     invalid = (negate && !invalid) || (!negate && invalid);

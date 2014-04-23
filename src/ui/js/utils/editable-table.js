@@ -5,9 +5,9 @@ EditableTable.EditRowView = Ember.ContainerView.extend({
     this._super();
     var cols = this.get('cols'), row = this.get('row');
     for(var i = 0; i < cols.length; i++) {
-      if(cols[i].get("disabled")) continue;
       this.pushObject(EditableTable.TypeToCellMap[cols[i].type].create({
         col : cols[i],
+        cols : cols,
         row : row,
         labelWidthClass : this.get("labelWidthClass"),
         inputWidthClass : this.get("inputWidthClass"),
@@ -38,8 +38,9 @@ EditableTable.EditCellTextInputView = Ember.View.extend({
     '</div>'),
   template : Ember.Handlebars.compile('{{input class="form-control" type="text" value=view.val disabled=view.col.fixedValue placeholder=view.col.placeholderActual maxlength=view.col.maxlength}}'),
   classNames : ['form-group'],
-  classNameBindings : ['invalid:has-error', ':has-feedback'],
+  classNameBindings : ['invalid:has-error', ':has-feedback', 'col.disabled:hidden'],
   col : null,
+  cols : null,
   row : null,
   labelWidthClass : "col-sm-3",
   inputWidthClass : "col-sm-9",
@@ -56,43 +57,40 @@ EditableTable.EditCellTextInputView = Ember.View.extend({
   invalid : false,
   invalidReason : false,
 
+  validateValue : function(value) {
+    var col = this.get("col"), row = this.get("row");
+    if(col.get("validate") && !col.get("disabled")) {
+      var validVal = col.validateValue(value);
+      if(validVal[0]) row._validation[col.name] = 1;
+      else delete row._validation[col.name];
+      this.set("invalid", validVal[0]);
+      this.set("invalidReason", !Ember.isEmpty(validVal[1]) && validVal[1]);
+    }
+    else {
+      delete row._validation[col.name];
+    }
+    var validationFailed = false;
+    for(var c in row._validation) {
+      validationFailed = true;
+    }
+    row.set("validationFailed", validationFailed);
+  },
+
   //Works as both getter and setter
   val : function(key, value) {
     var col = this.get("col"), row = this.get("row");
     row._validation = row._validation || {};
     if(arguments.length > 1) {
-      if(col.get("validate")) {
-        var validVal = col.validateValue(value);
-        if(validVal[0]) row._validation[col.name] = 1;
-        else delete row._validation[col.name];
-        this.set("invalid", validVal[0]);
-        this.set("invalidReason", !Ember.isEmpty(validVal[1]) && validVal[1]);
-      }
-      var validationFailed = false;
-      for(var c in row._validation) {
-        validationFailed = true;
-      }
-      row.set("validationFailed", validationFailed);
+      this.validateValue(value);
       row.set(col.name, value);
       return value;
     }
     else {
       value = row.get(col.name);
-      if(col.get("validate")) {
-        var validVal = col.validateValue(value);
-        if(validVal[0]) row._validation[col.name] = 1;
-        else delete row._validation[col.name];
-        this.set("invalid", validVal[0]);
-        this.set("invalidReason", !Ember.isEmpty(validVal[1]) && validVal[1]);
-      }
-      var validationFailed = false;
-      for(var c in row._validation) {
-        validationFailed = true;
-      }
-      row.set("validationFailed", validationFailed);
+      this.validateValue(value);
       return value;
     }
-  }.property('col', 'row.@each'),
+  }.property('col', 'row.@each', 'col.disabled'),
 });
 
 EditableTable.EditCellTextAreaView = EditableTable.EditCellTextInputView.extend({
@@ -102,7 +100,49 @@ EditableTable.EditCellTextAreaView = EditableTable.EditCellTextInputView.extend(
 
 EditableTable.EditCellStaticSelectView = EditableTable.EditCellTextInputView.extend({
   template : Ember.Handlebars.compile('{{view Ember.Select class="form-control" content=view.col.options optionValuePath="content.val" optionLabelPath="content.label" ' +
-                                                                               'prompt=view.col.prompt value=view.val disabled=view.col.fixedValue maxlength=view.col.maxlength}}'),
+                                                                               'prompt=view.col.prompt value=view.val disabled=view.col.fixedValue maxlength=view.col.maxlength}}' +
+                                      '{{#if view.helpblock}}<p class="help-block">{{view.helpblock}}</p>{{/if}}'),
+
+  helpblock : "",
+
+  enableDisableFields : function(value) {
+    var col = this.get("col"), cols = this.get("cols");
+    for(var i = 0; i < cols.length; i++) {
+      var opts = cols[i].get("options");
+      if(opts) {
+        for(var j = 0; j < opts.length; j++) {
+          var enableFields = opts[j].enableFields,
+              valEq = value == opts[j].val;
+          if(enableFields) {
+            for(var k = 0; k < enableFields.length; k++) {
+              var ec = cols.findBy("name", enableFields[k].name);
+              ec.set("disabled", (enableFields[k].enable && !valEq) || (enableFields[k].disable && valEq));
+            }
+          }
+          if(valEq) {
+            this.set("helpblock", opts[j].helpblock || "");
+          }
+        }
+      }
+    }
+  },
+
+  val : function(key, value) {
+    var col = this.get("col"), row = this.get("row");
+    row._validation = row._validation || {};
+    if(arguments.length > 1) {
+      this.validateValue(value);
+      this.enableDisableFields(value);
+      row.set(col.name, value);
+      return value;
+    }
+    else {
+      value = row.get(col.name);
+      this.validateValue(value);
+      this.enableDisableFields(value);
+      return value;
+    }
+  }.property('col', 'row.@each', 'col.disabled'),
 });
 
 //psuedo dynamic : takes options from records
@@ -119,9 +159,118 @@ EditableTable.EditCellDynamicSelectView = EditableTable.EditCellTextInputView.ex
                                                                                'prompt=view.col.prompt value=view.val disabled=view.col.fixedValue maxlength=view.col.maxlength}}'),
 });
 
+EditableTable.EditCellLabel = Ember.View.extend({
+  tagName : "label",
+  template : Ember.Handlebars.compile('{{col.label}}'),
+  col : null,
+  cols : null,
+  row : null,
+});
+
+EditableTable.EditCellFileUpload = EditableTable.EditCellTextInputView.extend({
+  template : Ember.Handlebars.compile('<button class="btn btn-default" {{action "loadFile" target="view"}} {{bind-attr disabled="view.disableBtn"}}>{{view.col.btnLabel}}</button>' +
+                                      '<input class="hidden" type="file" name="files[]" {{bind-attr accept="view.col.accept"}}>'),
+
+  disableBtn : false,
+
+  postRead : function(data) {
+    that.set("val", data);
+  },
+
+  postFail : function(message) {
+    that.set("val", null);
+  },
+
+  change : function(event) {
+    var files = event.originalEvent.target.files, that = this, col = this.get("col");
+    if(files && files.length > 0 && !Ember.isEmpty(files[0])) {
+      this.set("disableBtn", "disabled");
+      EmberFile[col.get("method")](files[0]).then(function(data) {
+        that.postRead(data);
+        that.set("disableBtn", false);
+      }, function(message) {
+        that.postFail(message);
+        that.set("disableBtn", false);
+      });
+      $(this.get("element")).find("input[type='file']")[0].value = "";
+    }
+  },
+
+  actions : {
+    loadFile : function() {
+      fileInput = $(this.get("element")).find("input[type='file']");
+      fileInput.click();
+    },
+  },
+});
+
+EditableTable.EditCellImageUpload = EditableTable.EditCellFileUpload.extend({
+  template : Ember.Handlebars.compile('<p><button class="btn btn-default btn-sm" {{action "loadFile" target="view"}} {{bind-attr disabled="view.disableBtn"}}>{{view.col.btnLabel}}</button>' +
+                                      '<input class="hidden" type="file" name="files[]" {{bind-attr accept="view.col.accept"}}></p>' +
+                                      '<canvas class="hidden"></canvas>' +
+                                      '<div {{bind-attr class="view.hasImage::hidden"}}>' +
+                                        '<div class="image-container">' +
+                                          '<div class="image-container-inner">' +
+                                            '<img class="the-image" {{bind-attr src="view.imageSrc"}}>' +
+                                            '<div class="image-cropper"></div>' +
+                                          '</div>' +
+                                        '</div>' +
+                                        '<button class="btn btn-default btn-sm" {{action "cropImage" target="view"}}>Crop</button>' +
+                                      '</div>' +
+                                      '<div class="clearfix"></div>'),
+
+  imageSrc : "",
+  hasImage : false,
+
+  postRead : function(data) {
+    this.set("imageSrc", data);
+    this.set("hasImage", true);
+  },
+
+  postFail : function(message) {
+    this.set("imageSrc", null);
+    this.set("hasImage", false);
+  },
+
+  didInsertElement : function() {
+    this._super();
+    var cropper = $(this.get("element")).find(".image-cropper");
+    cropper.draggable({
+      containment: "parent",
+    });
+    cropper.resizable({
+      containment: "parent",
+    });
+  },
+
+  actions : {
+    cropImage : function() {
+      var cropper = $(this.get("element")).find(".image-cropper"),
+          x = cropper.css("left"), y = cropper.css("top"),
+          h = cropper.height(), w = cropper.width(),
+          canvas = $(this.get("element")).find("canvas")[0],
+          context = canvas.getContext("2d");
+      x = Number(x.match(/^(\d+)px$/)[1]);
+      y = Number(y.match(/^(\d+)px$/)[1]);
+      context.drawImage($(this.get("element")).find(".the-image")[0], x, y, h, w, 0, 0, h, w);
+      this.set("val", canvas.toDataURL());
+      this.set("hasImage", false);
+      cropper.css("left", 0);
+      cropper.css("top", 0);
+      cropper.height(100);
+      cropper.width(100);
+    },
+  },
+
+});
+
+
 EditableTable.TypeToCellMap = {
   textInput : EditableTable.EditCellTextInputView,
   textareaInput : EditableTable.EditCellTextAreaView,
   staticSelect : EditableTable.EditCellStaticSelectView,
   dynamicSelect : EditableTable.EditCellDynamicSelectView,
+  label : EditableTable.EditCellLabel,
+  fileUpload : EditableTable.EditCellFileUpload,
+  imageUpload : EditableTable.EditCellImageUpload,
 };

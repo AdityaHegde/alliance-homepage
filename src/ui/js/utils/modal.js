@@ -88,8 +88,9 @@ Modal.AddEditWindow = Modal.ModalWindow.extend({
     '{{#alert-message message=view.message title=view.messageLabel type="error" switchAlert=view.showAlert}}{{/alert-message}}' +
     '{{#if view.ariaHidden}}No data{{else}}{{view EditableTable.EditRowView row=view.data cols=view.columns}}{{/if}}'),
 
-  showModalMesssage : function(message) {
+  showModalMesssage : function(message, label) {
     this.set("message", message);
+    this.set("messageLabel", label);
     this.set("showAlert", true);
   },
 
@@ -104,7 +105,7 @@ Modal.AddEditWindow = Modal.ModalWindow.extend({
       saveCallback.call(saveCallbackContext, data);
       $(okbtn).removeAttr("disabled");
     }, function(message) {
-      that.showModalMesssage(message);
+      that.showModalMesssage(message, "Error");
       data.rollback();
       var attrs = data._inFlightAttributes;
       data._inFlightAttributes = {};

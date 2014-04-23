@@ -5,6 +5,7 @@
   <title>Alliance</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/jquery-ui-1.10.4.css">
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/bootstrap.css">
   <link rel="stylesheet" href="css/bootstrap-theme.css">
@@ -30,7 +31,7 @@
           <li id="report-link">{{#link-to 'profile'}}Profile{{/link-to}}</li>
           {{#if GOTAA.GlobalData.profile.isLeader}}<li id="report-link">{{#link-to 'permission'}}Permission{{/link-to}}</li>{{/if}}
         </ul>
-        <p class="navbar-text navbar-right">Signed in as {{GOTAA.GlobalData.profile.email}}</p>
+        <p class="navbar-text navbar-right">Signed in as {{GOTAA.GlobalData.profile.name}}</p>
       </div>
     </nav>
     <div class="container">
@@ -49,6 +50,7 @@
     Loading...
   </script>
 
+<!--
   <script type="text/x-handlebars" data-template-name="error">
     <div class="container">
       <br>
@@ -56,6 +58,7 @@
       {{/panel-comp}}
     </div>
   </script>
+-->
 
   <script type="text/x-handlebars" data-template-name="alliance">
     {{#if editing}}
@@ -74,16 +77,18 @@
         </div>
         {{view Modal.AddEditWindow id="invite-member-window" columns=columns data=data preSave=preSave saveCallback=onSave saveCallbackContext=this onCancel=onCancel ariaHidden=ariaHidden}}
       {{/if}}
-      {{#each model.members}}
+      {{#each GOTAA.GlobalData.members}}
         <div class="col-sm-4">
           {{#panel-comp title=name data=this}}
-            <p>Email : {{email}}</p>
             <p>Is a {{permissionFull}}</p>
           {{/panel-comp}}
         </div>
       {{/each}}
     {{/panel-comp}}
   </script>
+  <!--
+    <p>Email : {{email}}</p>
+  -->
 
   <script type="text/x-handlebars" data-template-name="dashboard">
     {{#if GOTAA.GlobalData.canEditModule}}
@@ -146,6 +151,8 @@
           <button class="btn btn-primary btn-sm" {{action 'editProfile'}}>Edit Profile</button>
         {{/if}}
       </div>
+      <div class="list-group">
+      </div>
     </div>
     <div class="col-sm-8">
       {{outlet}}
@@ -174,6 +181,7 @@
   </script>
 
   <script src="js/lib/jquery-1.10.2.js"></script>
+  <script src="js/lib/jquery-ui-1.10.4.js"></script>
   <script src="js/lib/bootstrap.js"></script>
   <script src="js/lib/handlebars-1.1.2.js"></script>
   <script src="js/lib/ember.js"></script>
@@ -182,7 +190,6 @@
   <script src="js/utils/alerts.js"></script>
   <script src="js/utils/panels.js"></script>
   <script src="js/utils/editable-table.js"></script>
-  <script src="js/utils/modal.js"></script>
   <script src="js/utils/collapsibles.js"></script>
   <script src="js/utils/listgroups.js"></script>
   <script src="js/utils/tooltips.js"></script>
@@ -190,9 +197,13 @@
   <script src="js/utils/dragdrop.js"></script>
   <script src="js/utils/sort-filter.js"></script>
   <script src="js/utils/column-data.js"></script>
+  <script src="js/utils/progress-bars.js"></script>
+  <script src="js/utils/fileupload.js"></script>
+  <script src="js/utils/modal.js"></script>
   <script src="js/ember/app.js"></script>
   <script src="js/ember/crud-adaptor.js"></script>
   <script src="js/ember/views.js"></script>
+  <script src="js/ember/expanded-views.js"></script>
   <script src="js/ember/objects.js"></script>
   <script src="js/ember/columndata.js"></script>
   <script src="js/ember/routes.js"></script>
