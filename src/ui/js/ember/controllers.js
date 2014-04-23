@@ -67,9 +67,6 @@ GOTAA.AllianceController = GOTAA.ModelOperationController.extend({
   modalWindow : "#invite-member-window",
 
   postSave : function() {
-    var data = this.get("data"), meta = this.store.metadataFor("member"),
-        model = this.get("model"), members = GOTAA.GlobalData.get("members");
-    members.pushObject(data);
   },
 
   editing : function(key, value) {
