@@ -77,9 +77,9 @@ Views.ChallengesExpandedView = Views.ModuleExpandedView.extend({
           '<h4 class="list-group-item-heading">{{title}}</h4>' +
           '<p class="list-group-item-text">{{statusString}}</p>' +
           '{{#if hasWinners}}' +
-            '<p class="list-group-item-text">First : {{first}}</p>' +
-            '<p class="list-group-item-text">Second : {{second}}</p>' +
-            '<p class="list-group-item-text">Third : {{third}}</p>' +
+            '<p class="list-group-item-text">First ({{challengeDataObj.first}}) : {{first}}</p>' +
+            '<p class="list-group-item-text">Second ({{challengeDataObj.second}}) : {{second}}</p>' +
+            '<p class="list-group-item-text">Third ({{challengeDataObj.third}}) : {{third}}</p>' +
           '{{/if}}' +
         '</a>' +
       '{{else}}' +
@@ -157,4 +157,31 @@ Views.MemberListExtendedView = Views.ModuleExpandedView.extend({
         'Empty!' +
       '{{/each}}' +
     '</div>'),
+});
+
+Views.PollExtendedView = Views.ModuleExpandedView.extend({
+  template : Ember.Handlebars.compile('' +
+    '{{#with view as moduleView}}' +
+      '{{#view Collapsible.CollapsibleGroup groupId=moduleView.moduleObj.id id=moduleView.moduleObj.id}}' +
+        '{{#each moduleView.moduleObj.moduleData}}' +
+          '<div class="feed-item">' +
+            '{{#view Collapsible.Collapsible title=title groupId=moduleView.moduleObj.id collapseId=id}}' +
+              '{{#each pollOptions}}' +
+                '<div>' +
+                  '-- {{title}} --' +
+                '</div>' +
+              '{{/each}}' +
+            '{{/view}}' +
+            '{{#if moduleView.canEdit}}' +
+              '<div class="edit-toolbar">' +
+                '<span class="btn btn-link btn-edit-toolbar" {{action "editData" this moduleView.moduleObj}}>{{#tool-tip title="Edit Data"}}<span class="glyphicon glyphicon-pencil"></span>{{/tool-tip}}</span>' +
+                '<span class="btn btn-link btn-edit-toolbar" {{action "deleteData" this moduleView.moduleObj}}>{{#tool-tip title="Delete Data"}}<span class="glyphicon glyphicon-trash"></span>{{/tool-tip}}</span>' +
+              '</div>' +
+            '{{/if}}' +
+          '</div>' +
+        '{{else}}' +
+          'Empty!' +
+        '{{/each}}' +
+      '{{/view}}' +
+    '{{/with}}'),
 });

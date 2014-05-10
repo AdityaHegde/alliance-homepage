@@ -78,6 +78,7 @@ GOTAA.AllianceController = GOTAA.ModelOperationController.extend({
     }
   }.property(),
 
+
   actions : {
     saveAlliance : function() {
       var model = this.get("model");
@@ -95,6 +96,12 @@ GOTAA.AllianceController = GOTAA.ModelOperationController.extend({
     inviteMember : function() {
       this.loadColumnsAndShowWindow(null, this.store.createRecord('member'), true);
     },
+
+    removeMember : function(member) {
+      member.deleteRecord();
+      GOTAA.saveRecord(member);
+    },
+
   },
 
   col : ColumnData.ColumnData.create({
@@ -104,6 +111,36 @@ GOTAA.AllianceController = GOTAA.ModelOperationController.extend({
     accept : "image/*",
   }),
   row : Ember.Object.create(),
+});
+
+GOTAA.MemberslistController = SortFilter.SortFilterController.extend({
+  init : function() {
+    this._super();
+    this.set("columnData", GOTAA.ColumnDataMap.profile);
+  },
+  memberViewing : null,
+  columnData : Utils.hasMany(ColumnData.ColumnData),
+
+  sortProperties : ['gotaname'],
+  filterProperties : [
+    SortFilter.FilterProperty.create({
+      filterProperty : "gotaname",
+    }),
+    SortFilter.FilterProperty.create({
+      filterProperty : "fealty",
+      filteredByRegex : false,
+    }),
+  ],
+  membersArray : function() {
+    var model = this.get("model");
+    return model && model.content && model.content.content;
+  }.property("model.@each"),
+
+  actions : {
+    memberDetails : function(member) {
+      this.set("memberViewing", member);
+    },
+  },
 });
 
 GOTAA.DashboardController = GOTAA.ModelOperationController.extend({
@@ -196,6 +233,12 @@ GOTAA.DashboardController = GOTAA.ModelOperationController.extend({
           columnData[i].data = GOTAA.GlobalData.get("members");
         }
       }
+      if(columnData[0].set) {
+        columnData[0].set("data", GOTAA.GlobalData.get("challenges"));
+      }
+      else {
+        columnData[0].data = GOTAA.GlobalData.get("challenges");
+      }
     },
 
     "member-list" : function(columnData, model) {
@@ -208,8 +251,31 @@ GOTAA.DashboardController = GOTAA.ModelOperationController.extend({
     },
   },
 
+  positionsAvailable : [],
+  currentModuleData : null,
+  selectedPosition : null,
+
+  onChallengeEnded : function() {
+    var currentModule = this.get("currentModule"), currentModuleData = this.get("currentModuleData"),
+        selectedPosition = this.get("selectedPosition");
+    if(selectedPosition) {
+      currentModuleData.set(selectedPosition, GOTAA.GlobalData.profile.get("email"));
+    }
+    currentModuleData.set("challengeStatus", 4);
+    GOTAA.GlobalData.set("modId", currentModule.get("id"));
+    GOTAA.GlobalData.set("modType", currentModule.get("type"));
+    GOTAA.saveRecord(currentModuleData);
+    $("#challenge-ended-window").modal("hide");
+  },
+
   actions : {
     addModule : function() {
+      if(GOTAA.ColumnDataMap.addmodule[1].set) {
+        GOTAA.ColumnDataMap.addmodule[1].set("disabled", false);
+      }
+      else {
+        GOTAA.ColumnDataMap.addmodule[1].disabled = false;
+      }
       if(GOTAA.ColumnDataMap.addmodule[3].set) {
         GOTAA.ColumnDataMap.addmodule[3].set("disabled", false);
       }
@@ -229,6 +295,12 @@ GOTAA.DashboardController = GOTAA.ModelOperationController.extend({
     },
 
     editModule : function(module) {
+      if(GOTAA.ColumnDataMap.addmodule[1].set) {
+        GOTAA.ColumnDataMap.addmodule[1].set("disabled", true);
+      }
+      else {
+        GOTAA.ColumnDataMap.addmodule[1].disabled = true;
+      }
       if(GOTAA.ColumnDataMap.addmodule[3].set) {
         GOTAA.ColumnDataMap.addmodule[3].set("disabled", true);
       }
@@ -401,11 +473,31 @@ GOTAA.DashboardController = GOTAA.ModelOperationController.extend({
       view.set("imageUrl", image);
       $(view.get("windowIdHref")).modal("show");
     },
+
+    markAsEnded : function(moduleData, module) {
+      this.set("currentModule", module);
+      this.set("currentModuleData", moduleData);
+      var positionsAvailable = [], positions = ["first", "second", "third"];
+      this.set("selectedPosition", null);
+      for(var i = 0; i < positions.length; i++) {
+        if(Ember.isEmpty(moduleData.get(positions[i]))) {
+          positionsAvailable.push({ value : positions[i], label : positions[i] + " - " + moduleData.get("challengeDataObj").get(positions[i]) });
+        }
+      }
+      this.set("positionsAvailable", positionsAvailable);
+    },
   },
 });
 
 GOTAA.ProfileController = Ember.Controller.extend({
+  init : function() {
+    this._super();
+    this.set("profileColumns", GOTAA.ColumnDataMap.profile);
+  },
+
   isEditing : false,
+
+  profileColumns : Utils.hasMany(ColumnData.ColumnData),
 
   actions : {
     editProfile : function() {
@@ -413,12 +505,13 @@ GOTAA.ProfileController = Ember.Controller.extend({
     },
 
     saveProfile : function() {
-      var model = this.get("model"), store = this.store;
+      var model = this.get("model"), store = this.store, that = this;
       GOTAA.saveRecord(model).then(function() {
         var meta = store.metadataFor("profile");
-        alert("Give this link to member " + meta.url + ".");
+        that.set("isEditing", false);
+      }, function(message) {
+        alert(message);
       });
-      this.set("isEditing", false);
     },
   },
 });

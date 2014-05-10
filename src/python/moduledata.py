@@ -30,7 +30,8 @@ class UsedId(modelbase.ModelBase):
     @classmethod
     def create_model(model, data):
         breakWhile = 0
-        idNum = model.query().order(-model.idNum).get()
+        parent = ndb.Key("UsedIdParent", "0")
+        idNum = model.query(ancestor=parent).order(-model.idNum).get()
         if not idNum:
             idNum = 1
         elif idNum == 1048576:
@@ -40,12 +41,12 @@ class UsedId(modelbase.ModelBase):
             idNum += 1
             breakWhile = 1
         while breakWhile == 0:
-            if model.query(model.idNum == idNum).get():
+            if model.query(model.idNum == idNum, ancestor=parent).get():
                 idNum += 1
             else:
                 breakWhile = 1
 
-        obj = model(idNum = idNum)
+        obj = model(idNum = idNum, parent = parent)
         obj.put()
         return obj
 
@@ -281,7 +282,7 @@ class CampTarget(ModuleData):
 
         campTarItems = modelObj.campItems
         for campTarItm in campTarItems:
-            campTarMemItms = CampTargetMemberItem.query(CampTargetMemberItem.item == campTarItm.item).fetch()
+            campTarMemItms = camps.CampTargetMemberItem.query(camps.CampTargetMemberItem.item == campTarItm.item).fetch()
             for campTarMemItm in campTarMemItms:
                 if campTarItm.qty > 0:
                     if campTarMemItm.qty > campTarItm.qty:
@@ -299,24 +300,51 @@ class MemberListData(ModuleData):
     email = ndb.StringProperty()
 
 
-#class PollOption(ndb.Model):
-#    title = ndb.StringProperty()
-#    id = ndb.IntegerProperty()
-#
-#class PollData(ModuleData):
-#    options = ndb.StructuredProperty(PollOption, repeated=true)
-#    multiVote = ndb.BooleanProperty()
-#    editable = ndb.BooleanProperty()
-#
-#
-#class PollVote(modelbase.ModelBase):
-#    email = ndb.StringProperty()
-#    pollId = ndb.StringProperty()
-#    voteId = ndb.IntegerProperty()
-#
-#    @classmethod
-#    def get_key_from_data(model, data):
-#        return ndb.Key("{0}__{1}__{2}".format(data['email'], data['pollId'], data['voteId']))
+class PollOption(ndb.Model):
+    title = ndb.StringProperty()
+    optId = ndb.IntegerProperty()
+
+class PollData(ModuleData):
+    pollOptions = ndb.StructuredProperty(PollOption, repeated=True)
+    multiVote = ndb.BooleanProperty()
+    editable = ndb.BooleanProperty()
+
+    @classmethod
+    def modifyPollOptions(model, newPollOptions, oldPollOptions=[]):
+        idsPresent = {}
+        for po in newPollOptions:
+            if not po.has_key('optId'):
+                po['optId'] = UsedId.create_model({}).idNum
+            else:
+                idsPresent[po['optId']] = 1
+
+        for opo in oldPollOptions:
+            if not idsPresent.has_key(opo['optId']):
+                UsedId.delete_model({ "idNum" : opo['optId'] })
+                delete_from_query(PollVote.query(PollVote.optId == opo['optId']).fetch())
+
+
+    @classmethod
+    def create_model(model, data, parentData):
+        logging.warn(data)
+        model.modifyPollOptions(data['pollOptions'])
+        return super(PollData, model).create_model(data, parentData)
+
+    @classmethod
+    def update_model(model, data, parentData):
+        modelObj = model.query_model(data, parentData)
+        model.modifyPollOptions(data['pollOptions'], modelObj.pollOptions)
+        return super(PollData, model).update_model(data, parentData)
+
+
+class PollVote(modelbase.ModelBase):
+    email = ndb.StringProperty()
+    optId = ndb.IntegerProperty()
+    pollId = ndb.IntegerProperty()
+
+    @classmethod
+    def get_key_from_data(model, data):
+        return ndb.Key(model, "{0}__{1}".format(data['email'], data['optId']))
 
 
 moduleTypeToClassMap = {
@@ -325,7 +353,7 @@ moduleTypeToClassMap = {
     "challenge" : ChallengeModuleData,
     "feed" : FeedData,
     "camp" : CampTarget,
-#    "poll" : PollData,
+    "poll" : PollData,
 }
 
 
@@ -506,4 +534,53 @@ class DeleteModuleDataRequest(webapp2.RequestHandler):
                 self.response.out.write(json.dumps(response.success("success", {})))
             else:
                 self.response.out.write(json.dumps(response.failure("401", "No permission to edit Module Data related data")))
+
+
+class CreatePollVote(webapp2.RequestHandler):
+
+    @member.validate_user
+    @member.validate_user_is_member
+    def post(self):
+        self.response.headers['Content-Type'] = 'application/json'
+        if self.member:
+            params = json.loads(self.request.body)
+            voteObj = PollVote.create_model(params['data'])
+            self.response.out.write(json.dumps(response.success("success", voteObj.to_dict())))
+
+
+class GetAllPollVote(webapp2.RequestHandler):
+
+    @member.validate_user
+    @member.validate_user_is_member
+    def get(self):
+        self.response.headers['Content-Type'] = 'application/json' 
+        if self.member:
+            data = PollVote.get_all_short()
+            self.response.out.write(json.dumps(response.success("success", data)))
+
+
+class UpdatePollVote(webapp2.RequestHandler):
+
+    @member.validate_user
+    @member.validate_user_is_member
+    def post(self):
+        self.response.headers['Content-Type'] = 'application/json'
+        if self.member:
+            params = json.loads(self.request.body)
+            voteObj = PollVote.update_model(params['data'])
+            self.response.out.write(json.dumps(response.success("success", voteObj.to_dict())))
+
+
+class DeletePollVote(webapp2.RequestHandler):
+
+    @member.validate_user
+    @member.validate_user_is_member
+    def get(self):
+        self.response.headers['Content-Type'] = 'application/json'
+        if self.member:
+            voteObj = PollVote.delete_model({
+              "email" : self.request.get("email"),
+              "optId" : int(self.request.get("optId")),
+            })
+            self.response.out.write(json.dumps(response.success("success", {})))
 

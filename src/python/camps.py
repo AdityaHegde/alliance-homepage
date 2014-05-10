@@ -163,16 +163,6 @@ def create_camps_data():
         campObj = CampLevel(**camp)
         campObj.put()
 
-class CreateCamps(webapp2.RequestHandler):
-
-    @member.validate_user
-    @member.validate_user_is_leader
-    def get(self):
-        self.response.headers['Content-Type'] = 'application/json' 
-        if self.member:
-            create_camps_data()
-            self.response.out.write(json.dumps(response.success("success", "Camps Created")))
-
 
 class ClearCampTargets(webapp2.RequestHandler):
 

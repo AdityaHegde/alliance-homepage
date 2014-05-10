@@ -64,6 +64,8 @@ GOTAA.DashboardRoute = Ember.Route.extend({
 
   afterModel : function(model, transition) {
     GOTAA.GlobalData.set("members", this.store.find("member"));
+    GOTAA.GlobalData.set("challenges", this.store.find("challenges-list-data"));
+    GOTAA.GlobalData.set("pollVotes", this.store.find("poll-vote"));
   },
 });
 

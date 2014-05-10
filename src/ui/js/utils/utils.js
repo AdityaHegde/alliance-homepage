@@ -191,7 +191,7 @@ Utils.HashMapArray = Ember.ArrayProxy.extend({
   },
 });
 
-Utils.ObjectWithArray = Ember.Object.extend({
+Utils.ObjectWithArrayMixin = Ember.Mixin.create({
   init : function() {
     this._super();
     this.set("arrayProps", this.get("arrayProps") || []);

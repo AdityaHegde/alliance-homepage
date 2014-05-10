@@ -33,6 +33,7 @@ ColumnData.ColumnData = Ember.Object.extend({
     return label;
   }.property('label', 'placeholder'),
   type : "",
+  childCol : Utils.belongsTo(ColumnData.ColumnData),
   fixedValue : null,
   options : [],
   data : [],

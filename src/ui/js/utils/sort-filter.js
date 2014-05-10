@@ -255,6 +255,8 @@ SortFilter.SortFilterView = Ember.View.extend({
     }
   },
 
+  filterHidden : true,
+
   controllerObj : null,
   innerModel : null,
   typeOptions : [
@@ -267,32 +269,37 @@ SortFilter.SortFilterView = Ember.View.extend({
         '{{#if controller.isSorted}}' +
           '<label class="control-label col-sm-2">Sort</label>' +
           '<div class="col-sm-8">' +
-            '{{view Views.SelectiveSelect class="form-control input-sm" options=controller.columnData filterColumn="sortable" optionValuePath="content.name" optionLabelPath="content.label" ' +
+            '{{view EditableTable.EditCellSelectiveSelectView class="form-control input-sm" options=controller.columnData filterColumn="sortable" optionValuePath="content.name" optionLabelPath="content.label" ' +
                                                                        'value=view.sortPropery}}' +
           '</div>' +
-          '<a href="javascript:;" class="btn btn-link" {{action "changeSortOrder" target="view"}}><span {{bind-attr class=":glyphicon controller.sortAscending:glyphicon-chevron-up:glyphicon-chevron-down"}}></span></a>' +
+          '<a href="javascript:;" class="btn btn-link" {{action "changeSortOrder" target="view"}}><span {{bind-attr class=":glyphicon controller.sortAscending:glyphicon-sort-by-attributes:glyphicon-sort-by-attributes-alt"}}></span></a>' +
         '{{/if}}' +
       '</div>' +
-      '<div class="form-group col-sm-5">' +
+      '<div class="form-group col-sm-5 filter-box">' +
         '{{#if view.hasFilterProperty}}' +
-          '<label class="control-label col-sm-2">Filter</label>' +
+          '<label class="control-label col-sm-2 col-sm-offset-2">Filter</label>' +
           '<div class="col-sm-4">' +
-            '{{view Views.SelectiveSelect class="form-control input-sm" options=controller.columnData filterColumn="filterable" optionValuePath="content.name" optionLabelPath="content.label" '+
+            '{{view EditableTable.EditCellSelectiveSelectView class="form-control input-sm" options=controller.columnData filterColumn="filterable" optionValuePath="content.name" optionLabelPath="content.label" '+
                                                                        'value=view.filterProperty.filterProperty}}' +
           '</div>' +
-          '<div class="col-sm-6">' +
-            '{{#each view.filterProperty.filterValueOptions}}' +
-              '<span class="form-group col-sm-6">' +
-                '<span class="checkbox"><label>{{view Ember.Checkbox checkedBinding="checked"}}{{label}}</label></span>' +
-              '</span>' +
-            '{{/each}}' +
+          '<div class="col-sm-4 filter-container">' +
+            '<a class="btn btn-link btn-sm" {{action "showValues" target="view"}}>Values</a>' +
+            '<div {{bind-attr class=":filter-options view.filterHidden:filter-options-hidden :well"}}>' +
+              '{{#each view.filterProperty.filterValueOptions}}' +
+                '<div class="form-group filter-option">' +
+                  '<span class="checkbox"><label>{{view Ember.Checkbox checkedBinding="checked"}}{{label}}</label></span>' +
+                '</div>' +
+              '{{/each}}' +
+              '<p></p>' +
+              '<button class="btn btn-primary btn-sm" {{action "hideValues" target="view"}}>Hide</button>' +
+            '</div>' +
           '</div>' +
         '{{/if}}' +
       '</div>' +
       '<div class="form-group col-sm-4">' +
         '{{#if view.hasSearchProperty}}' +
           '<div class="col-sm-5">' +
-            '{{view Views.SelectiveSelect class="form-control input-sm" options=controller.columnData filterColumn="searchable" optionValuePath="content.name" optionLabelPath="content.label" '+
+            '{{view EditableTable.EditCellSelectiveSelectView class="form-control input-sm" options=controller.columnData filterColumn="searchable" optionValuePath="content.name" optionLabelPath="content.label" '+
                                                                        'value=view.searchProperty.filterProperty}}' +
           '</div>' +
           '<div class="col-sm-7">' +
@@ -361,6 +368,14 @@ SortFilter.SortFilterView = Ember.View.extend({
     changeSortOrder : function() {
       var controller = this.get("controller"), sortAscending = controller.get("sortAscending");
       controller.set("sortAscending", !sortAscending);
+    },
+
+    showValues : function() {
+      this.set("filterHidden", false);
+    },
+
+    hideValues : function() {
+      this.set("filterHidden", true);
     },
   },
 });

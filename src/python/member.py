@@ -21,9 +21,18 @@ def delete_from_query(query):
 
 class Member(modelbase.ModelBase):
     email = ndb.StringProperty()
+    profileImg = ndb.BlobProperty()
     gotaname = ndb.StringProperty()
     status = ndb.IntegerProperty()
     permission = ndb.IntegerProperty()
+    bday_month = ndb.IntegerProperty()
+    bday_date = ndb.IntegerProperty()
+    #'s' added to handle ember-data's pluralize
+    linage = ndb.TextProperty()
+    fealty = ndb.StringProperty()
+    talents = ndb.StringProperty(repeated=True)
+    timezone = ndb.StringProperty()
+    gotafrlink = ndb.StringProperty()
 
     @classmethod
     def get_key_from_data(model, data):
@@ -47,6 +56,13 @@ class InviteToken(modelbase.ModelBase):
         token.put()
         return token
 
+providers = [
+  ['Google'   , 'https://www.google.com/accounts/o8/id'],
+  ['Yahoo'    , 'yahoo.com'],
+  ['MySpace'  , 'myspace.com'],
+  ['AOL'      , 'aol.com'],
+]
+
 
 def validate_user(func):
     def get_post_user(self):
@@ -55,7 +71,9 @@ def validate_user(func):
             self.user = user
             func(self)
         else:
-            self.redirect(users.create_login_url(self.request.uri))
+            self.response.out.write('Hello! Sign in at: ')
+            for provider in providers:
+                self.response.out.write('[<a href="%s">%s</a>]' % (users.create_login_url(federated_identity=provider[1], dest_url=self.request.url), provider[0]))
     return get_post_user
 
 
@@ -127,7 +145,7 @@ class UpdateProfile(webapp2.RequestHandler):
             memberData.pop("status", None)
             self.member.populate(**memberData)
             self.member.put()
-            self.response.write(json.dumps(response.success("success", {})))
+            self.response.write(json.dumps(response.success("success", { "email" : self.member.email })))
 
 
 class InviteMember(webapp2.RequestHandler):
@@ -159,6 +177,24 @@ clicking on the link below:
 
                 mail.send_mail(sender_address, newMember.email, subject, body)
                 self.response.write(json.dumps(response.success("success", {"email" : newMember.email})))
+
+
+class DeleteMember(webapp2.RequestHandler):
+
+    @validate_user
+    @validate_user_is_leader
+    def get(self):
+        self.response.headers['Content-Type'] = 'application/json' 
+        if self.member:
+            email = self.request.get("email")
+            if email != self.member.email:
+                Member.delete_model({ "email" : email })
+                invited = InviteToken.query(InviteToken.email == email).get()
+                if invited:
+                    invited.key.delete()
+                self.response.out.write(json.dumps(response.success("success", {})))
+            else:
+                self.response.out.write(json.dumps(response.failure("500", "Cant delete self!")))
 
 
 class GetAllMembers(webapp2.RequestHandler):

@@ -11,6 +11,7 @@ GOTAA.ModuleData.queryParams = ['id', 'modId', 'modType'];
 GOTAA.ModuleData.findParams = ['modId', 'modType'];
 GOTAA.ModuleData.ignoreFieldsOnCreateUpdate = ['module'];
 GOTAA.ModuleData.retainId = true;
+
 GOTAA.Module = DS.Model.extend({
   moduleData : hasMany("module-data", {async : true}),
   title : attr(),
@@ -27,6 +28,7 @@ GOTAA.Module.apiName = 'module';
 GOTAA.Module.queryParams = ['id'];
 GOTAA.Module.ignoreFieldsOnCreateUpdate = ['moduleData'];
 GOTAA.Module.retainId = true;
+
 
 GOTAA.Image = DS.Model.extend({
   name : attr(),
@@ -45,6 +47,7 @@ GOTAA.FeedData.queryParams = ['id', 'modId', 'modType'];
 GOTAA.FeedData.findParams = ['modId', 'modType'];
 GOTAA.FeedData.ignoreFieldsOnCreateUpdate = ['module'];
 GOTAA.FeedData.retainId = true;
+
 GOTAA.Feed = GOTAA.Module.extend({
   moduleData : hasMany("feed-data", {async : true}),
   viewObj : Views.FeedView,
@@ -56,6 +59,7 @@ GOTAA.Feed.apiName = 'module';
 GOTAA.Feed.queryParams = ['id'];
 GOTAA.Feed.ignoreFieldsOnCreateUpdate = ['moduleData'];
 GOTAA.Feed.retainId = true;
+
 
 GOTAA.DayMap = {
   "0" : "Sun",
@@ -93,12 +97,20 @@ GOTAA.ChallengeData = GOTAA.ModuleData.extend({
       return "Starts at "+this.get("startsAtString");
     }
   }),
+  canMarkEnded : Ember.computed("challengeStatus", function() {
+    var challengeStatus = this.get("challengeStatus");
+    return challengeStatus === 3;
+  }),
   first : attr(),
   second : attr(),
   third : attr(),
   hasWinners : function() {
     return this.get("challengeStatus") === 4;
   }.property("challengeStatus"),
+  challengeDataObj : Ember.computed("title", "GOTAA.GlobalData.challenges.@each", function() {
+    var title = this.get("title"), challenges = GOTAA.GlobalData.get("challenges");
+    return challenges.findBy("name", title);
+  }),
 });
 GOTAA.ChallengeData.keys = ['id'];
 GOTAA.ChallengeData.apiName = 'moduleData';
@@ -106,6 +118,7 @@ GOTAA.ChallengeData.queryParams = ['id', 'modId', 'modType'];
 GOTAA.ChallengeData.findParams = ['modId', 'modType'];
 GOTAA.ChallengeData.ignoreFieldsOnCreateUpdate = ['module'];
 GOTAA.ChallengeData.retainId = true;
+
 GOTAA.Challenge = GOTAA.Module.extend({
   moduleData : hasMany("challenge-data", {async : true}),
   viewObj : Views.ChallengesView,
@@ -117,6 +130,18 @@ GOTAA.Challenge.apiName = 'module';
 GOTAA.Challenge.queryParams = ['id'];
 GOTAA.Challenge.ignoreFieldsOnCreateUpdate = ['moduleData'];
 GOTAA.Challenge.retainId = true;
+
+GOTAA.ChallengesListData = DS.Model.extend({
+  name : attr(),
+  first : attr(),
+  second : attr(),
+  third : attr(),
+});
+GOTAA.ChallengesListData.keys = ['name'];
+GOTAA.ChallengesListData.apiName = 'challengeslistdata';
+GOTAA.ChallengesListData.queryParams = ['name'];
+GOTAA.ChallengesListData.findParams = ['name'];
+
 
 GOTAA.CampData = GOTAA.ModuleData.extend({
   type : attr('string', {defaultValue : "Battle"}),
@@ -139,6 +164,7 @@ GOTAA.CampData.apiName = 'moduleData';
 GOTAA.CampData.queryParams = ['id', 'modId', 'modType'];
 GOTAA.CampData.findParams = ['modId', 'modType'];
 GOTAA.CampData.ignoreFieldsOnCreateUpdate = ['campItems', 'module'];
+
 GOTAA.Camp = GOTAA.Module.extend({
   moduleData : hasMany("camp-data", {async : true}),
   viewObj : Views.CampTargetView,
@@ -183,6 +209,7 @@ GOTAA.CampMemberItem.apiName = 'campmemberitem';
 GOTAA.CampMemberItem.queryParams = ['email', 'item', 'type', 'fromlevel', 'tolevel'];
 //GOTAA.CampMemberItem.ignoreFieldsOnCreateUpdate = ['camp'];
 
+
 GOTAA.MemberListData = GOTAA.ModuleData.extend({
   email : attr(),
   memberObj : Ember.computed("email", "GOTAA.GlobalData.members.@each.email", function() {
@@ -201,6 +228,7 @@ GOTAA.MemberListData.queryParams = ['id', 'modId', 'modType'];
 GOTAA.MemberListData.findParams = ['modId', 'modType'];
 GOTAA.MemberListData.ignoreFieldsOnCreateUpdate = ['module'];
 GOTAA.MemberListData.retainId = true;
+
 GOTAA.MemberList = GOTAA.Module.extend({
   moduleData : hasMany("member-list-data", {async : true}),
   viewObj : Views.MemberListView,
@@ -213,12 +241,102 @@ GOTAA.MemberList.queryParams = ['id'];
 GOTAA.MemberList.ignoreFieldsOnCreateUpdate = ['moduleData'];
 GOTAA.MemberList.retainId = true;
 
+
+GOTAA.PollVote = DS.Model.extend({
+  email : attr(),
+  optId : attr(),
+  pollId : attr(),
+});
+GOTAA.PollVote.keys = ['email', 'optId'];
+GOTAA.PollVote.apiName = 'pollvote';
+GOTAA.PollVote.queryParams = ['email', 'optId'];
+GOTAA.PollVote.findParams = ['email', 'optId'];
+GOTAA.PollVote.ignoreFieldsOnCreateUpdate = [''];
+
+GOTAA.PollOption = DS.Model.extend({
+  title : attr(),
+  optId : attr(),
+  pollData : belongsTo("poll-data"),
+  isVoted : Ember.computed("optId", "GOTAA.GlobalData.profile.email", "GOTAA.GlobalData.pollVotes.@each.optId", "GOTAA.GlobalData.pollVotes.@each.email", function(key, value) {
+    var optId = this.get("optId")+"", pollData = this.get("pollData"),
+        email = GOTAA.GlobalData && GOTAA.GlobalData.get("profile") && GOTAA.GlobalData.get("profile").get("email"),
+        pollVotes = GOTAA.GlobalData.get("pollVotes"), vote = pollVotes.filterBy("optId", optId).filterBy("email", email)[0];
+    if(arguments.length === 1) {
+      if(optId && email && vote) {
+        return true;
+      }
+      return false;
+    }
+    else {
+      if(value && !vote) {
+        otherVote = pollVotes.filterBy("pollId", pollData.get("id")).filterBy("email", email)[0];
+        GOTAA.saveRecord(this.store.createRecord("poll-vote", {
+          email : email,
+          optId : optId,
+          pollId : pollData.get("id"),
+        }));
+        if(!pollData.get("multiVote")) {
+          otherVote.deleteRecord();
+          GOTAA.saveRecord(otherVote);
+        }
+      }
+      else if(vote) {
+        vote.deleteRecord();
+        GOTAA.saveRecord(vote);
+      }
+      return value;
+    }
+  }),
+  votes : Ember.computed("optId", "GOTAA.GlobalData.pollVotes.@each.optId", function() {
+    var optId = this.get("optId");
+    if(optId) {
+      GOTAA.GlobalData.get("pollVotes").filterBy("optId", optId);
+    }
+    return [];
+  }),
+});
+GOTAA.PollOption.keys = ['optId'];
+GOTAA.PollOption.apiName = 'polloption';
+GOTAA.PollOption.queryParams = ['optId'];
+GOTAA.PollOption.findParams = ['optId'];
+GOTAA.PollOption.ignoreFieldsOnCreateUpdate = [''];
+
+GOTAA.PollData = GOTAA.ModuleData.extend({
+  pollOptions : hasMany("poll-option", {async : true}),
+  multiVote : attr(),
+  editable : attr(),
+  module : belongsTo("poll"),
+  addEntryHook : function(prop) {
+    return this.store.createRecord("poll-option");
+  },
+});
+GOTAA.PollData.keys = ['id'];
+GOTAA.PollData.apiName = 'moduleData';
+GOTAA.PollData.queryParams = ['id', 'modId', 'modType'];
+GOTAA.PollData.findParams = ['modId', 'modType'];
+GOTAA.PollData.ignoreFieldsOnCreateUpdate = ['module'];
+GOTAA.PollData.retainId = true;
+
+GOTAA.Poll = GOTAA.Module.extend({
+  moduleData : hasMany("poll-data", {async : true}),
+  viewObj : Views.PollView,
+  expandedView : Views.PollExtendedView,
+  dashboard : belongsTo("dashboard"),
+});
+GOTAA.Poll.keys = ['id'];
+GOTAA.Poll.apiName = 'module';
+GOTAA.Poll.queryParams = ['id'];
+GOTAA.Poll.ignoreFieldsOnCreateUpdate = ['moduleData'];
+GOTAA.Poll.retainId = true;
+
+
 GOTAA.ModuleObjectMap = {
   module : "module",
   challenge : "challenge",
   feed : "feed",
   camp : "camp",
   "member-list" : "member-list",
+  poll : "poll",
 };
 GOTAA.ModuleDataObjectMap = {
   module : "module-data",
@@ -226,6 +344,7 @@ GOTAA.ModuleDataObjectMap = {
   feed : "feed-data",
   camp : "camp-data",
   "member-list" : "member-list-data",
+  poll : "poll-data",
 };
 
 GOTAA.ModuleColumn = Ember.Object.extend({
@@ -285,9 +404,15 @@ GOTAA.PermissionMap = {
   1 : "Officer",
   0 : "Member",
 };
+GOTAA.Talent = DS.Model.extend({
+  profile : belongsTo('profile'),
+  talent : attr(),
+});
+GOTAA.Talent.keys = ['talent'];
 GOTAA.Profile = DS.Model.extend({
   email : attr(),
   gotaname : attr(),
+  profileImg : attr(),
   name : function() {
     return this.get("gotaname") || this.get("email");
   }.property('gotaname', 'email'),
@@ -297,8 +422,23 @@ GOTAA.Profile = DS.Model.extend({
     return GOTAA.PermissionMap[permission];
   }.property("permission"),
   isLeader : function() {
-    return this.get("permission") === 2;
+    return this.get("permission") >= 2;
   }.property("permission"),
+  bday_month : attr(),
+  bday_month_str : Ember.computed("bday_month", function() {
+    var bday_month = Number(this.get("bday_month")), matched = new Date(bday_month).toDateString().match(/.*? (.*?) /);
+    return (bday_month && matched && matched[1]) || null;
+  }),
+  bday_date : attr(),
+  //'s' added to handle ember-data's pluralize
+  linage : attr(),
+  fealty : attr(),
+  talents : hasMany('talent'),
+  timezone : attr(),
+  gotafrlink : attr(),
+  addEntryHook : function(prop) {
+    return this.store.createRecord("talent");
+  },
 });
 GOTAA.Profile.keys = ['email'];
 GOTAA.Profile.apiName = 'profile';
@@ -323,6 +463,16 @@ GOTAA.Member = DS.Model.extend({
     return permission >= 2;
   }.property("permission"),
   alliance : belongsTo("alliance"),
+  bday_month : attr(),
+  bday_month_str : Ember.computed("bday_month", function() {
+    var bday_month = Number(this.get("bday_month")), matched = new Date(bday_month).toDateString().match(/.*? (.*?) /);
+    return bday_month && matched && matched[1];
+  }),
+  bday_date : attr(),
+  //'s' added to handle ember-data's pluralize
+  fealty : attr(),
+  timezone : attr(),
+  gotafrlink : attr(),
 });
 GOTAA.Member.keys = ['email'];
 GOTAA.Member.apiName = 'member';
@@ -367,8 +517,10 @@ GOTAA.Alliance.ignoreFieldsOnCreateUpdate = ['members'];
 GOTAA.GlobalDataObject = Ember.Object.extend({
   permissions : [],
   editableModules : [],
+  pollVotes : [],
   profile : null,
   members : [],
+  challenges : [],
 
   canEdit : function() {
     var profile = this.get("profile"), permissions = this.get("permissions");

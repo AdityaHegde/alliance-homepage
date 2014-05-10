@@ -2,6 +2,10 @@
 .ember-application {
 }
 
+.container {
+  width:90% !important;
+}
+
 .hotriz-item {
   vertical-align:middle;
 }
@@ -49,13 +53,14 @@
   width:100%;
   min-width:50px;
   display:inline-block;
+  color:#333;
 }
 
 .total-progress {
   margin:15px 0 0 0;
 }
 
-.panel-heading {
+.panel {
   position:relative;
 }
 
@@ -83,4 +88,37 @@
   position:absolute !important;
   left:0;
   top:0;
+}
+
+.member-sm {
+  position:relative;
+}
+.member-name {
+  margin-top:0px;
+}
+
+.filter-box {
+  position:relative;
+}
+.filter-container {
+}
+.filter-options {
+  position: absolute;
+  width: 300px;
+  top: -125px;
+  left: -25px;
+  z-index: 5;
+  margin:15px;
+  overflow:hidden;
+  -webkit-transition: width 0.5s, padding 0.5s, border 0.5s;
+  transition: width 0.5s, padding 0.5s, border 0.5s;
+}
+.filter-options-hidden {
+  width:0px;
+  min-height: 0px !important;
+  padding:0px !important;
+  border: 0px solid #dcdcdc !important;
+}
+.filter-option {
+  margin:0 !important;
 }

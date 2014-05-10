@@ -51,3 +51,9 @@ indexes:
   - name: col
   - name: row
     direction: desc
+
+- kind: UsedId
+  ancestor: yes
+  properties:
+  - name: idNum
+    direction: desc

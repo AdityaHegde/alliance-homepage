@@ -27,6 +27,11 @@ EditableTable.EditRowView = Ember.ContainerView.extend({
 });
 
 EditableTable.EditCellTextInputView = Ember.View.extend({
+  init : function() {
+    this._super();
+    this.rowDidChange();
+  },
+
   layout : Ember.Handlebars.compile('' +
     '{{#if view.showLabel}}<label {{bind-attr for="view.col.name" class="view.labelClass"}}>{{view.col.label}}{{#if view.col.mandatory}}*{{/if}}</label>{{/if}}' +
     '<div {{bind-attr class="view.inputClass"}}>' +
@@ -90,7 +95,24 @@ EditableTable.EditCellTextInputView = Ember.View.extend({
       this.validateValue(value);
       return value;
     }
-  }.property('col', 'row.@each', 'col.disabled'),
+  }.property('col', 'col.disabled'),
+
+  prevRow : null,
+  rowDidChange : function() {
+    var row = this.get("row"), prevRow = this.get("prevRow"),
+        col = this.get("col");
+    if(prevRow) {
+      Ember.removeObserver(prevRow, col.name, this, "notifyValChange");
+    }
+    Ember.addObserver(row, col.name, this, "notifyValChange");
+    this.set("prevRow", row);
+    this.notifyPropertyChange("val");
+  }.observes("view.row", "row"),
+  title : "test",
+
+  notifyValChange : function(obj, val) {
+    this.notifyPropertyChange("val");
+  },
 });
 
 EditableTable.EditCellTextAreaView = EditableTable.EditCellTextInputView.extend({
@@ -107,20 +129,22 @@ EditableTable.EditCellStaticSelectView = EditableTable.EditCellTextInputView.ext
 
   enableDisableFields : function(value) {
     var col = this.get("col"), cols = this.get("cols");
-    for(var i = 0; i < cols.length; i++) {
-      var opts = cols[i].get("options");
-      if(opts) {
-        for(var j = 0; j < opts.length; j++) {
-          var enableFields = opts[j].enableFields,
-              valEq = value == opts[j].val;
-          if(enableFields) {
-            for(var k = 0; k < enableFields.length; k++) {
-              var ec = cols.findBy("name", enableFields[k].name);
-              ec.set("disabled", (enableFields[k].enable && !valEq) || (enableFields[k].disable && valEq));
+    if(cols) {
+      for(var i = 0; i < cols.length; i++) {
+        var opts = cols[i].get("options");
+        if(opts) {
+          for(var j = 0; j < opts.length; j++) {
+            var enableFields = opts[j].enableFields,
+                valEq = value == opts[j].val;
+            if(enableFields) {
+              for(var k = 0; k < enableFields.length; k++) {
+                var ec = cols.findBy("name", enableFields[k].name);
+                ec.set("disabled", (enableFields[k].enable && !valEq) || (enableFields[k].disable && valEq));
+              }
             }
-          }
-          if(valEq) {
-            this.set("helpblock", opts[j].helpblock || "");
+            if(valEq) {
+              this.set("helpblock", opts[j].helpblock || "");
+            }
           }
         }
       }
@@ -142,7 +166,7 @@ EditableTable.EditCellStaticSelectView = EditableTable.EditCellTextInputView.ext
       this.enableDisableFields(value);
       return value;
     }
-  }.property('col', 'row.@each', 'col.disabled'),
+  }.property('col', 'col.disabled'),
 });
 
 //psuedo dynamic : takes options from records
@@ -157,6 +181,17 @@ EditableTable.EditCellDynamicSelectView = EditableTable.EditCellTextInputView.ex
 
   template : Ember.Handlebars.compile('{{view Ember.Select class="form-control" content=view.selectOptions optionValuePath="content.val" optionLabelPath="content.label" '+
                                                                                'prompt=view.col.prompt value=view.val disabled=view.col.fixedValue maxlength=view.col.maxlength}}'),
+});
+
+EditableTable.EditCellSelectiveSelectView = Ember.Select.extend({
+  options : [],
+  filterColumn : "",
+  content : function() {
+    var filterColumn = this.get("filterColumn");
+    return this.get("options").filter(function(item) {
+      return !Ember.isEmpty(item.get(this.filterColumn));
+    }, {filterColumn : filterColumn});
+  }.property('view.overallOptions.@each'),
 });
 
 EditableTable.EditCellLabel = Ember.View.extend({
@@ -264,13 +299,60 @@ EditableTable.EditCellImageUpload = EditableTable.EditCellFileUpload.extend({
 
 });
 
+EditableTable.EditCellMultiEntry = EditableTable.EditCellTextInputView.extend({
+  childView : function() {
+    var col = this.get("col");
+    return EditableTable.TypeToCellMap[col.get("childCol").type];
+  }.property("view.col.childCol.type"),
+  template : Ember.Handlebars.compile('' +
+    '{{#each view.val}}' +
+      '<div>' +
+        '<div class="col-md-10">{{create-view view.childView row=this col=view.col.childCol showLabel=false}}</div>' +
+        '<div class="col-md-2"><a class="btn btn-link btn-sm" {{action "deleteEntry" this target="view"}}>' +
+          '{{#tool-tip title="Delete Entry"}}<span class="glyphicon glyphicon-trash"></span>{{/tool-tip}}' +
+        '</a></div>' +
+        '<div class="clearfix"></div>' +
+      '</div>' +
+    '{{/each}}' +
+    '<button class="btn btn-default btn-sm" {{action "addEntry" target="view"}}>Add Entry</button>'),
+
+  actions : {
+    addEntry : function() {
+      var row = this.get("row"), col = this.get("col"),
+          entry, val = this.get("val");
+      if(row.addEntryHook) {
+        entry = row.addEntryHook(col.name);
+      }
+      else {
+        entry = Ember.Object.create();
+      }
+      if(!val) {
+        val = [];
+        this.set("val", val);
+      }
+      val.pushObject(entry);
+    },
+
+    deleteEntry : function(entry) {
+      var val = this.get("val");
+      val.removeObject(entry);
+    },
+  },
+});
+
+EditableTable.EditCellCheckBox = EditableTable.EditCellTextInputView.extend({
+  template : Ember.Handlebars.compile('{{view Ember.Checkbox class="form-control" checked=view.val disabled=view.col.fixedValue}}'),
+});
 
 EditableTable.TypeToCellMap = {
   textInput : EditableTable.EditCellTextInputView,
   textareaInput : EditableTable.EditCellTextAreaView,
   staticSelect : EditableTable.EditCellStaticSelectView,
   dynamicSelect : EditableTable.EditCellDynamicSelectView,
+  selectiveSelect : EditableTable.EditCellSelectiveSelectView,
   label : EditableTable.EditCellLabel,
   fileUpload : EditableTable.EditCellFileUpload,
   imageUpload : EditableTable.EditCellImageUpload,
+  multiEntry : EditableTable.EditCellMultiEntry,
+  checkBox : EditableTable.EditCellCheckBox,
 };

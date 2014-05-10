@@ -6,6 +6,7 @@ import member
 import moduledata
 import alliance
 import camps
+import challengeslist
 import permission
 
 from google.appengine.api import users
@@ -47,6 +48,7 @@ class ProfileGetRequest(webapp2.RequestHandler):
                 editableModules = permission.ModulePermission.query(permission.ModulePermission.email == self.member.email).fetch()
             extraData["permissions"] = permissions
             extraData["editableModules"] = member.convert_query_to_dict(editableModules)
+            extraData["pollsVoted"] = member.convert_query_to_dict(moduledata.PollVote.query(moduledata.PollVote.email == self.member.email).fetch())
             self.response.out.write(json.dumps(response.success("success", self.member.to_dict(), extraData)))
 
 
@@ -60,11 +62,25 @@ class AddAdmin(webapp2.RequestHandler):
                 memberObj = member.Member.create_model({ "email" : self.user.email(), "permission" : permission.LEADER_PERMISSION, "status" : 1 })
                 permission.createPermissions()
                 camps.create_camps_data()
+                challengeslist.create_challenges_data()
                 self.redirect("/")
             elif memberObj.email == self.user.email():
                 self.redirect("/")
             else:
                 self.response.write('Invalid Request! Leader already present!')
+
+class CreateData(webapp2.RequestHandler):
+
+    @member.validate_user
+    @member.validate_user_is_member
+    def get(self):
+        if self.member:
+            if self.member.permission == 3:
+                camps.create_camps_data()
+                challengeslist.create_challenges_data()
+                self.response.write('Create Data!')
+            else:
+                self.response.write('Unauthorised Access')
 
 
 app = webapp2.WSGIApplication([
@@ -84,6 +100,7 @@ app = webapp2.WSGIApplication([
     ('/moduleData/get', moduledata.GetModuleDataRequest),
     ('/member/create', member.InviteMember),
     ('/member/getAll', member.GetAllMembers),
+    ('/member/delete', member.DeleteMember),
     ('/profile/get', ProfileGetRequest),
     ('/profile/update', member.UpdateProfile),
     ('/permission/create', member.CreatePermission),
@@ -92,11 +109,16 @@ app = webapp2.WSGIApplication([
     ('/register', member.RegisterMember),
     ('/modulepermission/create', member.CreateModulePermission),
     ('/modulepermission/delete', member.DeleteModulePermission),
-    ('/camp/init', camps.CreateCamps),
     ('/camp/clear', camps.ClearCampTargets),
     ('/campmemberitem/create', camps.CreateCampTargetMemberItem),
     ('/campmemberitem/getAll', camps.GetAllCampTargetMemberItems),
     ('/campmemberitem/update', camps.UpdateCampTargetMemberItem),
+    ('/pollvote/create', moduledata.CreatePollVote),
+    ('/pollvote/getAll', moduledata.GetAllPollVote),
+    ('/pollvote/update', moduledata.UpdatePollVote),
+    ('/pollvote/delete', moduledata.DeletePollVote),
+    ('/challengeslistdata/getAll', challengeslist.GetAllChallengeData),
     ('/admin', AddAdmin),
+    ('/createData', CreateData),
     ('/', MainPage),
 ], debug=True)

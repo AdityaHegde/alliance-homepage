@@ -88,21 +88,29 @@ GOTAA.ApplicationSerializer = DS.RESTSerializer.extend({
       if(this.data[relationship.key]) {
         if(relationship.kind === "hasMany") {
           for(var i = 0; i < this.data[relationship.key].length; i++) {
-            this.serializer.serializeRelations(relationship.type, payload, this.data[relationship.key][i], this.data);
-            this.data[relationship.key][i] = this.serializer.normalize(relationship.type, this.data[relationship.key][i], relationship.type.typeKey);
-            this.payload[plural].push(this.data[relationship.key][i]);
+            var childData = this.data[relationship.key][i], childModel, childType;
             if(relationship.options.polymorphic) {
               //TODO : make the type customizable
-              this.serializer.store.push(GOTAA.ModelMap[relationship.type.typeKey][this.data[relationship.key][i].type], this.data[relationship.key][i]);
+              childType = GOTAA.ModelMap[relationship.type.typeKey][this.data[relationship.key][i].type];
+            }
+            else {
+              childType = (GOTAA.ModelMap[relationship.type.typeKey] && GOTAA.ModelMap[relationship.type.typeKey][data.type]) || relationship.type.typeKey;
+            }
+            childModel = this.serializer.store.modelFor(childType);
+            this.serializer.serializeRelations(childModel, payload, childData, this.data);
+            childData = this.serializer.normalize(childModel, childData, childType);
+            this.payload[plural].push(childData);
+            if(relationship.options.polymorphic) {
+              //TODO : make the type customizable
+              this.serializer.store.push(childType, childData);
               this.data[relationship.key][i] = {
-                id : this.data[relationship.key][i].id,
-                type : GOTAA.ModelMap[relationship.type.typeKey][this.data[relationship.key][i].type],
+                id : childData.id,
+                type : childType,
               };
             }
             else {
-              var type = (GOTAA.ModelMap[relationship.type.typeKey] && GOTAA.ModelMap[relationship.type.typeKey][data.type]) || relationship.type.typeKey;
-              this.serializer.store.push(type, this.data[relationship.key][i]);
-              this.data[relationship.key][i] = this.data[relationship.key][i].id;
+              this.serializer.store.push(childType, childData);
+              this.data[relationship.key][i] = childData.id;
             }
           }
         }
@@ -179,7 +187,7 @@ GOTAA.ApplicationSerializer = DS.RESTSerializer.extend({
     this.normalizeUsingDeclaredMapping(type, hash);
 
     if (this.normalizeHash && this.normalizeHash[prop]) {
-      this.normalizeHash[prop](hash);
+      hash = this.normalizeHash[prop](hash);
     }
 
     return hash;
@@ -218,6 +226,20 @@ GOTAA.ApplicationSerializer = DS.RESTSerializer.extend({
     "challenge-data" : function(json) {
       return json;
     },
+
+    "poll-votes" : function(json) {
+      json.optId = json.optId+"";
+      json.pollId = json.pollId+"";
+      return json;
+    },
+
+    talent : function(json) {
+      return {talent : json, id : json};
+    },
+
+    profile : function(json) {
+      return json;
+    },
   },
 
   serialize : function(record, options) {
@@ -236,6 +258,17 @@ GOTAA.ApplicationSerializer = DS.RESTSerializer.extend({
     },
 
     "challenge-data" : function(record, json) {
+      return json;
+    },
+
+    "poll-vote" : function(record, json) {
+      json.optId = Number(json.optId);
+      json.pollId = Number(json.pollId);
+      return json;
+    },
+
+    profile : function(record, json) {
+      json.talents = json.talents.mapBy("talent");
       return json;
     },
   },
@@ -337,16 +370,9 @@ GOTAA.retrieveBackup = function(hash, type, hasId) {
 };
 
 GOTAA.customBackup = {
-  config : function(record, type, data) {
-    data.slotObjects = record.get("slotObjects");
-  },
 };
 
 GOTAA.customRetrieve = {
-  config : function(hash, type, data) {
-    hash.slots = hash.slotObjects || hash.slots;
-    delete hash.slotObjects;
-  },
 };
 
 GOTAA.saveRecord = function(record, type) {
@@ -364,7 +390,7 @@ GOTAA.saveRecord = function(record, type) {
         }
       }, record);
     }
-    if(record.get("isDirty")) {
+    //if(record.get("isDirty")) {
       new Ember.RSVP.Promise(function(resolve, reject) {
         record.save().then(function(data) {
           resolve(data);
@@ -374,13 +400,28 @@ GOTAA.saveRecord = function(record, type) {
         });
       }).then(function(data) {
         resolve(data);
+        record.eachRelationship(function(name, relationship) {
+          if(relationship.kind === "hasMany") {
+            var hasManyArray = record.get(relationship.key);
+            for(var i = 0; i < hasManyArray.get("length");) {
+              var item = hasManyArray.objectAt(i);
+              if(item.get("isNew")) {
+                hasManyArray.removeObject(item);
+                item.unloadRecord();
+              }
+              else {
+                i++;
+              }
+            }
+          }
+        }, record);
       }, function(message) {
         reject(message.message || message.statusText || message);
       });
-    }
+    /*}
     else {
       resolve(record);
-    }
+    }*/
   });
 };
 

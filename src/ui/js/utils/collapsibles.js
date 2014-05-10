@@ -30,7 +30,7 @@ Collapsible.Collapsible = Ember.Component.extend({
         '<div>' +
           '<h4 class="panel-title group-item-heading">' +
             '<a class="group-item-name" data-toggle="collapse" {{bind-attr data-parent="view.groupIdHref" href="view.idHref"}}>' +
-              '{{#tool-tip tagName="span" title=view.tooltipTitle data=view}}{{view.data.title}}{{/tool-tip}}' +
+              '{{#tool-tip tagName="span" title=view.tooltipTitle placement="right" data=view}}{{view.data.title}}{{/tool-tip}}' +
             '</a>' +
             '{{#if view.hasActive}}' +
               '{{view Views.ActiveLabel value=view.active}}' +

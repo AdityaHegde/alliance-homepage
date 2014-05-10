@@ -26,7 +26,7 @@ Views.ModuleView = Ember.View.extend({
     '</div>' +
     '<div class="panel-body">' +
       '{{#if view.expanded}}' +
-        '{{create-view view.moduleObj.expandedView moduleObj=view.moduleObj moduleShortView=view title=view.moduleObjExpanded.title}}' +
+        '{{create-view view.moduleObj.expandedView moduleObj=view.moduleObj moduleShortView=view title=view.moduleObj.title}}' +
       '{{else}}' +
         '<p>{{view.moduleObj.desc}}</p>' +
         '{{yield}}' +
@@ -118,9 +118,29 @@ Views.ListInListView = Views.ModuleSideView.extend({
     '</p>'),
 });
 
-Views.ChallengesView = Views.ModuleSideView.extend({
+Views.ChallengesView = Views.ModuleView.extend({
   template : Ember.Handlebars.compile('' +
-    '<p class="list-group-item-text">{{statusString}}</p>'),
+    '<div class="list-group">' +
+      '{{#with view as moduleView}}' +
+        '{{#each moduleView.moduleObj.moduleData}}' +
+          '<a class="list-group-item module-data">' +
+            '<div class="edit-toolbar">' +
+              '{{#if view.canEdit}}' +
+                '<span class="btn btn-link btn-edit-toolbar" {{action "editData" this view.moduleObj}}>{{#tool-tip title="Edit Data"}}<span class="glyphicon glyphicon-pencil"></span>{{/tool-tip}}</span>' +
+                '<span class="btn btn-link btn-edit-toolbar" {{action "deleteData" this view.moduleObj}}>{{#tool-tip title="Delete Data"}}<span class="glyphicon glyphicon-trash"></span>{{/tool-tip}}</span>' +
+              '{{/if}}' +
+              '{{#if canMarkEnded}}' +
+                '<button class="btn btn-link btn-sm btn-edit-toolbar" data-toggle="modal" data-target="#challenge-ended-window" {{action "markAsEnded" this moduleView.moduleObj}}>{{#tool-tip title="Challenge Ended"}}<span class="glyphicon glyphicon-ok"></span>{{/tool-tip}}</button>' +
+              '{{/if}}' +
+            '</div>' +
+            '<h4 class="list-group-item-heading">{{title}}</h4>' +
+            '<p class="list-group-item-text">{{statusString}}</p>' +
+          '</a>' +
+        '{{else}}' +
+          'Empty!' +
+        '{{/each}}' +
+      '{{/with}}' +
+    '</div>'),
 });
 
 Views.MemberListView = Views.ModuleSideView.extend({
@@ -193,8 +213,8 @@ Views.FeedView = Views.ModuleView.extend({
             '{{/view}}' +
             '{{#if moduleView.canEdit}}' +
               '<div class="edit-toolbar">' +
-                '<span class="btn btn-link btn-edit-toolbar" {{action "editData" this view.moduleObj}}>{{#tool-tip title="Edit Data"}}<span class="glyphicon glyphicon-pencil"></span>{{/tool-tip}}</span>' +
-                '<span class="btn btn-link btn-edit-toolbar" {{action "deleteData" this view.moduleObj}}>{{#tool-tip title="Delete Data"}}<span class="glyphicon glyphicon-trash"></span>{{/tool-tip}}</span>' +
+                '<span class="btn btn-link btn-edit-toolbar" {{action "editData" this moduleView.moduleObj}}>{{#tool-tip title="Edit Data"}}<span class="glyphicon glyphicon-pencil"></span>{{/tool-tip}}</span>' +
+                '<span class="btn btn-link btn-edit-toolbar" {{action "deleteData" this moduleView.moduleObj}}>{{#tool-tip title="Delete Data"}}<span class="glyphicon glyphicon-trash"></span>{{/tool-tip}}</span>' +
               '</div>' +
             '{{/if}}' +
           '</div>' +
@@ -218,19 +238,26 @@ Views.CampTargetView = Views.ModuleSideView.extend({
 });
 
 Views.PollView = Views.ModuleView.extend({
+  init : function() {
+    this._super();
+  },
+
   template : Ember.Handlebars.compile('' +
     '{{#with view as moduleView}}' +
       '{{#view Collapsible.CollapsibleGroup groupId=moduleView.moduleObj.id id=moduleView.moduleObj.id}}' +
         '{{#each moduleView.moduleObj.moduleData}}' +
           '<div class="feed-item">' +
             '{{#view Collapsible.Collapsible title=title groupId=moduleView.moduleObj.id collapseId=id}}' +
-              '<p>{{desc}}</p>' +
-              '<img {{bind-attr src="image"}}>' +
+              '{{#each pollOptions}}' +
+                '<div>' +
+                  '{{view Ember.Checkbox checked=isVoted}} {{title}}' +
+                '</div>' +
+              '{{/each}}' +
             '{{/view}}' +
             '{{#if moduleView.canEdit}}' +
               '<div class="edit-toolbar">' +
-                '<span class="btn btn-link btn-edit-toolbar" {{action "editData" this view.moduleObj}}>{{#tool-tip title="Edit Data"}}<span class="glyphicon glyphicon-pencil"></span>{{/tool-tip}}</span>' +
-                '<span class="btn btn-link btn-edit-toolbar" {{action "deleteData" this view.moduleObj}}>{{#tool-tip title="Delete Data"}}<span class="glyphicon glyphicon-trash"></span>{{/tool-tip}}</span>' +
+                '<span class="btn btn-link btn-edit-toolbar" {{action "editData" this moduleView.moduleObj}}>{{#tool-tip title="Edit Data"}}<span class="glyphicon glyphicon-pencil"></span>{{/tool-tip}}</span>' +
+                '<span class="btn btn-link btn-edit-toolbar" {{action "deleteData" this moduleView.moduleObj}}>{{#tool-tip title="Delete Data"}}<span class="glyphicon glyphicon-trash"></span>{{/tool-tip}}</span>' +
               '</div>' +
             '{{/if}}' +
           '</div>' +
