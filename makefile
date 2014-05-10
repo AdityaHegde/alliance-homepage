@@ -113,8 +113,7 @@ clean :
 .PHONY : clean
 
 git-push :
-	git add -A
-	git commit
+	git commit -a
 	git push
 .PHONY : git-push
 

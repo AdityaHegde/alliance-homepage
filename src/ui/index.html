@@ -86,7 +86,7 @@
       {{#each arrangedContent}}
         <div class="col-sm-4">
           <div class="well member-sm">
-            <h5 class="member-name">{{gotaname}}</h5>
+            <h5 class="member-name">{{name}}</h5>
             <div class="edit-toolbar">
               {{#if GOTAA.GlobalData.profile.isLeader}}
                 <a class="btn btn-link btn-sm btn-edit-toolbar" {{action "removeMember" this}}>{{#tool-tip title="Remove Member"}}<span class="glyphicon glyphicon-trash"></span>{{/tool-tip}}</a>
@@ -101,7 +101,7 @@
         </div>
       {{/each}}
     {{/view}}
-    {{#view Modal.ModalWindow id="user-details-window" title=memberViewing.gotaname showOk=false cancelLabel="Ok"}}
+    {{#view Modal.ModalWindow id="user-details-window" title=memberViewing.name showOk=false cancelLabel="Ok"}}
       <div>Is a {{controller.memberViewing.permissionFull}}</div>
       {{#if controller.memberViewing.bday_date}}<div>Born on {{controller.memberViewing.bday_month_str}} {{controller.memberViewing.bday_date}}</div>{{/if}}
       {{#if controller.memberViewing.fealty}}<div>Fealty : {{controller.memberViewing.fealty}}</div>{{/if}}

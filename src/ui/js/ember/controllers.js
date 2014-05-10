@@ -126,10 +126,10 @@ GOTAA.MemberslistController = SortFilter.SortFilterController.extend({
     SortFilter.FilterProperty.create({
       filterProperty : "gotaname",
     }),
-    SortFilter.FilterProperty.create({
+    /*SortFilter.FilterProperty.create({
       filterProperty : "fealty",
       filteredByRegex : false,
-    }),
+    }),*/
   ],
   membersArray : function() {
     var model = this.get("model");
