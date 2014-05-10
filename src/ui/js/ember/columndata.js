@@ -120,7 +120,7 @@ GOTAA.ColumnDataMap = {
     },
     {
       name : "challengeStatus",
-      label : "Started",
+      label : "Status",
       type : "staticSelect",
       options : [
         {val : 1, label : 'Yet to start'},
@@ -242,7 +242,7 @@ GOTAA.ColumnDataMap = {
       sortable : true,
       searchable : true,
     },
-    {
+    /*{
       name : "editable",
       label : "Members can edit the vote",
       type : "checkBox",
@@ -250,7 +250,7 @@ GOTAA.ColumnDataMap = {
       ],
       sortable : true,
       searchable : true,
-    },
+    },*/
     {
       name : "pollOptions",
       label : "Poll Options",

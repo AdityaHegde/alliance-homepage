@@ -88,7 +88,7 @@
           <div class="well member-sm">
             <h5 class="member-name">{{name}}</h5>
             <div class="edit-toolbar">
-              {{#if GOTAA.GlobalData.profile.isLeader}}
+              {{#if GOTAA.GlobalData.canEditMember}}
                 <a class="btn btn-link btn-sm btn-edit-toolbar" {{action "removeMember" this}}>{{#tool-tip title="Remove Member"}}<span class="glyphicon glyphicon-trash"></span>{{/tool-tip}}</a>
               {{/if}}
               <a class="btn btn-link btn-sm btn-edit-toolbar" data-toggle="modal" data-target="#user-details-window" {{action "memberDetails" this}}>

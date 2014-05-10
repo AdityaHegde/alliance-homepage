@@ -200,7 +200,7 @@ class FeedData(ModuleData):
 
     @classmethod
     def modify_data(model, data):
-        data['image'] = str(data['image'])
+        #data['image'] = str(data['image'])
         return data
 
     @classmethod

@@ -21,3 +21,8 @@ Ember.TextField.reopen({
 Ember.Handlebars.registerBoundHelper('create-view', function(viewName, options) {
   return Ember.Handlebars.ViewHelper.helper(options.contexts[options.contexts.length - 1], viewName, options);
 });
+
+Ember.Handlebars.registerBoundHelper('format', function(data) {
+  data = data.replace(/\n/g, "<br/>");
+  return new Handlebars.SafeString(data);
+});
