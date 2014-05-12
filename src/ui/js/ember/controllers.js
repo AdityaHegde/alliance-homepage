@@ -199,7 +199,7 @@ GOTAA.DashboardController = GOTAA.ModelOperationController.extend({
 
   postDelete : function() {
     var data = this.get("data"), module = this.get("module");
-    module.get("moduleData").removeObject(data);
+    if(module) module.get("moduleData").removeObject(data);
   },
 
   addingMember : false,
@@ -319,6 +319,13 @@ GOTAA.DashboardController = GOTAA.ModelOperationController.extend({
       this.loadColumnsAndShowWindow(GOTAA.ColumnDataMap[type], data, false);
     },
 
+    deleteModule : function(module) {
+      module.deleteRecord();
+      GOTAA.saveRecord(module).then(function() {
+        document.location.reload();
+      });
+    },
+
     editModulePermission : function(module) {
       this.set("members", GOTAA.GlobalData.get("members"));
       this.set("modulePermissions", module.get("modulePermissions"));
@@ -379,11 +386,6 @@ GOTAA.DashboardController = GOTAA.ModelOperationController.extend({
         "tolevel" : camp.get("tolevel"),
       });
       GOTAA.saveRecord(campMemItm).then(function() {
-        GOTAA.GlobalData.setProperties({
-          "modId" : moduleObj.get("id"),
-          "modType" : moduleObj.get("type"),
-        });
-        camp.reload();
       });
     },
 

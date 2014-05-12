@@ -1,6 +1,6 @@
 GOTAA.IndexRoute = Ember.Route.extend({
   model : function(params, transtion) {
-    return this.store.findById('profile', '0');
+    return this.store.findById('profile', '1');
   },
 
   afterModel : function(model, transition) {
@@ -45,7 +45,7 @@ GOTAA.IndexRoute = Ember.Route.extend({
 GOTAA.AllianceRoute = Ember.Route.extend({
   model : function(params, transtion) {
     if(GOTAA.GlobalData.get("allianceName")) {
-      return this.store.findById('alliance', '0');
+      return this.store.findById('alliance', '1');
     }
     else {
       return this.store.createRecord('alliance');
@@ -59,7 +59,7 @@ GOTAA.AllianceRoute = Ember.Route.extend({
 
 GOTAA.DashboardRoute = Ember.Route.extend({
   model : function(params, transtion) {
-    return this.store.findById('dashboard', '0');
+    return this.store.findById('dashboard', '1');
   },
 
   afterModel : function(model, transition) {

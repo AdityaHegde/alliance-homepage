@@ -14,6 +14,7 @@ Views.ModuleView = Ember.View.extend({
           '{{#if GOTAA.GlobalData.profile.isLeader}}' +
             '<a class="btn btn-link btn-sm btn-edit-toolbar" data-toggle="modal" data-target="#add-user-window" {{action "editModulePermission" view}}>{{#tool-tip title="Assign Members"}}<span class="glyphicon glyphicon-user"></span>{{/tool-tip}}</a>' +
           '{{/if}}' +
+          '<span class="btn btn-link btn-sm btn-edit-toolbar" {{action "deleteModule" view.moduleObj}}>{{#tool-tip title="Delete Module"}}<span class="glyphicon glyphicon-trash"></span>{{/tool-tip}}</span>' +
         '{{/if}}' +
         '<span class="btn btn-link btn-sm btn-edit-toolbar" {{action "expandModule" target="view"}}>{{#tool-tip title="Expand Module"}}<span class="glyphicon glyphicon-resize-full"></span>{{/tool-tip}}</span>' +
         '{{#if GOTAA.GlobalData.canEditModule}}' +
@@ -68,6 +69,7 @@ Views.ModuleSideView = Views.ModuleView.extend({
           '{{#if GOTAA.GlobalData.profile.isLeader}}' +
             '<a class="btn btn-link btn-sm btn-edit-toolbar" data-toggle="modal" data-target="#add-user-window" {{action "editModulePermission" view}}>{{#tool-tip title="Assign Members"}}<span class="glyphicon glyphicon-user"></span>{{/tool-tip}}</a>' +
           '{{/if}}' +
+          '<span class="btn btn-link btn-sm btn-edit-toolbar" {{action "deleteModule" view.moduleObj}}>{{#tool-tip title="Delete Module"}}<span class="glyphicon glyphicon-trash"></span>{{/tool-tip}}</span>' +
         '{{/if}}' +
         '<span class="btn btn-link btn-sm btn-edit-toolbar" {{action "expandModule" target="view"}}>{{#tool-tip title="Expand Module"}}<span class="glyphicon glyphicon-resize-full"></span>{{/tool-tip}}</span>' +
         '{{#if GOTAA.GlobalData.canEditModule}}' +
@@ -154,6 +156,7 @@ Views.MemberListView = Views.ModuleSideView.extend({
           '{{#if GOTAA.GlobalData.profile.isLeader}}' +
             '<a class="btn btn-link btn-sm btn-edit-toolbar" data-toggle="modal" data-target="#add-user-window" {{action "editModulePermission" view}}>{{#tool-tip title="Assign Members"}}<span class="glyphicon glyphicon-user"></span>{{/tool-tip}}</a>' +
           '{{/if}}' +
+          '<span class="btn btn-link btn-sm btn-edit-toolbar" {{action "deleteModule" view.moduleObj}}>{{#tool-tip title="Delete Module"}}<span class="glyphicon glyphicon-trash"></span>{{/tool-tip}}</span>' +
         '{{else}}' +
           '<span class="btn btn-link btn-sm btn-edit-toolbar" {{action "addSelf" view.moduleObj}}>{{#tool-tip title="Add Self"}}<span class="glyphicon glyphicon-plus"></span>{{/tool-tip}}</span>' +
         '{{/if}}' +
@@ -234,7 +237,7 @@ Views.FeedView = Views.ModuleView.extend({
 
 Views.CampTargetView = Views.ModuleSideView.extend({
   template : Ember.Handlebars.compile('' +
-    '{{progress-bar maxVal=total val=completed}}'),
+    '{{progress-bar maxVal=total val=completedMorphed}}'),
 });
 
 Views.PollView = Views.ModuleView.extend({

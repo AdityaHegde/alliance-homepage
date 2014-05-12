@@ -128,6 +128,15 @@ class Module(modelbase.ModelBase):
         retData.pop('parentModel', None)
         return retData 
 
+    @classmethod
+    def delete_model(model, data):
+        modelObj = super(model, model).delete_model(data)
+        data['parentModel'] = Module
+        moduleData = moduleTypeToClassMap[modelObj.type].get_all_full({}, data)
+        for dat in moduleData:
+            moduleTypeToClassMap[modelObj.type].delete_model(dat, data)
+        return modelObj
+
 
 class ModuleData(modelbase.ModelChild):
     id = ndb.IntegerProperty()
@@ -197,6 +206,7 @@ class ChallengeModuleData(ModuleData):
 class FeedData(ModuleData):
     sticky = ndb.IntegerProperty()
     image = ndb.BlobProperty()
+    desc = ndb.TextProperty()
 
     @classmethod
     def modify_data(model, data):
@@ -383,6 +393,20 @@ class UpdateModuleRequest(webapp2.RequestHandler):
             moduleObj = Module.update_model(params['data'])
             logging.warn(moduleObj)
             self.response.out.write(json.dumps(response.success("success", {"id" : moduleObj.id})))
+            
+
+class DeleteModuleRequest(webapp2.RequestHandler):
+
+    @member.validate_user
+    @member.validate_user_is_member
+    @permission.can_edit_GET("Module")
+    def get(self):
+        self.response.headers['Content-Type'] = 'application/json' 
+        if self.member:
+            moduleObj = Module.delete_model({
+              "id" : self.request.get("id"),
+            })
+            self.response.out.write(json.dumps(response.success("success", {})))
 
 
 class GetModuleAllShort(webapp2.RequestHandler):

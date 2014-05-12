@@ -149,6 +149,11 @@ GOTAA.CampData = GOTAA.ModuleData.extend({
   tolevel : attr('number', {defaultValue : 1}),
   total : attr(),
   completed : attr(),
+  completedMorphed : function() {
+    var campItems = this.get("campItems"), completed = this.get("completed"),
+        completedItems = this.get("campItems").reduce(function(s, itm) {return s + Number(itm.get("completed"))}, 0);
+    return campItems.get("length") > 0 ? completedItems : completed;
+  }.property('completed', 'campItems.@each.completed'),
   title : function() {
     return this.get("type") + " (" + this.get("fromlevel") + " - " + this.get("tolevel") + ")";
   }.property('type', 'fromlevel', 'tolevel'),
@@ -199,15 +204,30 @@ GOTAA.CampItem.apiName = 'campitem';
 GOTAA.CampItem.queryParams = ['item'];
 GOTAA.CampItem.ignoreFieldsOnCreateUpdate = ['camp'];
 
+GOTAA.LastTransaction = DS.Model.extend({
+  camp : attr(),
+  item : attr(),
+  qty : attr(),
+  //campMemberItem : belongsTo("camp-member-item"),
+});
+GOTAA.LastTransaction.keys = ['camp', 'item'];
 GOTAA.CampMemberItem = DS.Model.extend({
   email : attr(),
   item : attr(),
   qty : attr(),
+  lastTransactions : hasMany("last-transaction", {async : true}),
+  lastTransactionsArrayDidChange : function() {
+    var lastTransactions = this.get("lastTransactions");
+    lastTransactions.forEach(function(item) {
+      var campItem = item.store.getById("camp-item", item.get("item")+"__"+item.get("camp"));
+      campItem.set("completed", Number(campItem.get("completed")) + Number(item.get("qty")));
+    });
+  }.observes("lastTransactions.@each"),
 });
 GOTAA.CampMemberItem.keys = ['email', 'item'];
 GOTAA.CampMemberItem.apiName = 'campmemberitem';
 GOTAA.CampMemberItem.queryParams = ['email', 'item', 'type', 'fromlevel', 'tolevel'];
-//GOTAA.CampMemberItem.ignoreFieldsOnCreateUpdate = ['camp'];
+GOTAA.CampMemberItem.ignoreFieldsOnCreateUpdate = ['lastTransactions'];
 
 
 GOTAA.MemberListData = GOTAA.ModuleData.extend({
@@ -426,8 +446,8 @@ GOTAA.Profile = DS.Model.extend({
   }.property("permission"),
   bday_month : attr(),
   bday_month_str : Ember.computed("bday_month", function() {
-    var bday_month = Number(this.get("bday_month")), matched = new Date(bday_month).toDateString().match(/.*? (.*?) /);
-    return (bday_month && matched && matched[1]) || null;
+    var bday_month = Number(this.get("bday_month"));
+    return (bday_month && GOTAA.ColumnDataMap.profile[1].options.findBy("val", bday_month).label);
   }),
   bday_date : attr(),
   //'s' added to handle ember-data's pluralize
@@ -465,8 +485,8 @@ GOTAA.Member = DS.Model.extend({
   alliance : belongsTo("alliance"),
   bday_month : attr(),
   bday_month_str : Ember.computed("bday_month", function() {
-    var bday_month = Number(this.get("bday_month")), matched = new Date(bday_month).toDateString().match(/.*? (.*?) /);
-    return bday_month && matched && matched[1];
+    var bday_month = Number(this.get("bday_month"));
+    return (bday_month && GOTAA.ColumnDataMap.profile[1].options.findBy("val", bday_month).label);
   }),
   bday_date : attr(),
   //'s' added to handle ember-data's pluralize

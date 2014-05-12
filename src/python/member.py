@@ -84,7 +84,7 @@ def validate_user_is_member(func):
             self.member = member
             func(self)
         else:
-            self.response.out.write(json.dumps(response.failure("401", "Not a Member")))
+            self.response.out.write(json.dumps(response.failure("401", "%s is Not a Member" % self.user.email())))
     return get_post_member
 
 

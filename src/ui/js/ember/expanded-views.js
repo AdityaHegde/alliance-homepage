@@ -109,7 +109,7 @@ Views.CampTargetExpandedView = Views.ModuleExpandedView.extend({
                   '</h4>' +
                 '</div>' +
                 '<div class="total-progress">' +
-                  '{{progress-bar maxVal=md.total val=md.completed}}' +
+                  '{{progress-bar maxVal=md.total val=md.completedMorphed}}' +
                 '</div>' +
               '</h4>' +
             '</div>' +

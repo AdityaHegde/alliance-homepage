@@ -195,22 +195,22 @@ GOTAA.ApplicationSerializer = DS.RESTSerializer.extend({
 
   normalizeHash : {
     alliance : function(json) {
-      json.id = "0";
+      json.id = "1";
       return json;
     },
 
     member : function(json) {
-      json.allaince = "0";
+      json.allaince = "1";
       return json;
     },
 
     dashboard : function(json) {
-      json.id = "0";
+      json.id = "1";
       return json;
     },
 
     module : function(json) {
-      json.dashboard_id = "0";
+      json.dashboard_id = "1";
       json.dashboard_type = json.type;
       return json;
     },
@@ -370,6 +370,9 @@ GOTAA.retrieveBackup = function(hash, type, hasId) {
 };
 
 GOTAA.customBackup = {
+  "camp-member-item" : function(record, type, data) {
+    delete data.lastTransactions;
+  },
 };
 
 GOTAA.customRetrieve = {
@@ -400,21 +403,23 @@ GOTAA.saveRecord = function(record, type) {
         });
       }).then(function(data) {
         resolve(data);
-        record.eachRelationship(function(name, relationship) {
-          if(relationship.kind === "hasMany") {
-            var hasManyArray = record.get(relationship.key);
-            for(var i = 0; i < hasManyArray.get("length");) {
-              var item = hasManyArray.objectAt(i);
-              if(item.get("isNew")) {
-                hasManyArray.removeObject(item);
-                item.unloadRecord();
-              }
-              else {
-                i++;
+        if(!record.get("isDeleted")) {
+          record.eachRelationship(function(name, relationship) {
+            if(relationship.kind === "hasMany") {
+              var hasManyArray = record.get(relationship.key);
+              for(var i = 0; i < hasManyArray.get("length");) {
+                var item = hasManyArray.objectAt(i);
+                if(item.get("isNew")) {
+                  hasManyArray.removeObject(item);
+                  item.unloadRecord();
+                }
+                else {
+                  i++;
+                }
               }
             }
-          }
-        }, record);
+          }, record);
+        }
       }, function(message) {
         reject(message.message || message.statusText || message);
       });

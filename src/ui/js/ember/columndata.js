@@ -521,7 +521,7 @@ GOTAA.ColumnDataMap = {
         {type : 0, invalidMessage : "Cant be empty"},
       ],
     },
-    {
+    /*{
       name : "talents",
       label : "Talents",
       type : "multiEntry",
@@ -546,7 +546,7 @@ GOTAA.ColumnDataMap = {
         ],
         prompt : "Select",
       },
-    },
+    },*/
     {
       name : "linage",
       label : "Linage",

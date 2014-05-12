@@ -24,6 +24,9 @@ Ember.Handlebars.registerBoundHelper('create-view', function(viewName, options) 
 });
 
 Ember.Handlebars.registerBoundHelper('format', function(data) {
-  data = data.replace(/\n/g, "<br/>");
-  return new Handlebars.SafeString(data);
+  if(data) {
+    data = data.replace(/\n/g, "<br/>");
+    return new Handlebars.SafeString(data);
+  }
+  return "";
 });

@@ -33,8 +33,11 @@ class ChallengeData(modelbase.ModelBase):
 
 def create_challenges_data():
     for challenge in challengesdata.challengesData:
-        challengeObj = ChallengeData(**challenge)
-        challengeObj.put()
+        challengeObj = ChallengeData.query_model(challenge)
+        if not challengeObj:
+            challengeObj = ChallengeData.create_model(challenge)
+        else:
+            challengeObj = ChallengeData.update_model(challenge)
 
 
 class GetAllChallengeData(webapp2.RequestHandler):
