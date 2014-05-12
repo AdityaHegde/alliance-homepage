@@ -104,18 +104,18 @@ GOTAA.ChallengeData = GOTAA.ModuleData.extend({
   first : attr(),
   firstName : function() {
     var first = this.get("first"), firstMember = first && GOTAA.GlobalData.get("members").findBy("email", first);
-    return firstMember && firstMember.get("gotaname");
-  }.property("GOTAA.GlobalData.members.@each.email", "GOTAA.GlobalData.members.@each.gotaname", "first"),
+    return firstMember && firstMember.get("name");
+  }.property("GOTAA.GlobalData.members.@each.email", "GOTAA.GlobalData.members.@each.name", "first"),
   second : attr(),
   secondName : function() {
     var second = this.get("second"), secondMember = second && GOTAA.GlobalData.get("members").findBy("email", second);
-    return secondMember && secondMember.get("gotaname");
-  }.property("GOTAA.GlobalData.members.@each.email", "GOTAA.GlobalData.members.@each.gotaname", "second"),
+    return secondMember && secondMember.get("name");
+  }.property("GOTAA.GlobalData.members.@each.email", "GOTAA.GlobalData.members.@each.name", "second"),
   third : attr(),
   thirdName : function() {
     var third = this.get("third"), thirdMember = third && GOTAA.GlobalData.get("members").findBy("email", third);
-    return thirdMember && thirdMember.get("gotaname");
-  }.property("GOTAA.GlobalData.members.@each.email", "GOTAA.GlobalData.members.@each.gotaname", "third"),
+    return thirdMember && thirdMember.get("name");
+  }.property("GOTAA.GlobalData.members.@each.email", "GOTAA.GlobalData.members.@each.name", "third"),
   hasWinners : function() {
     return this.get("challengeStatus") === 4;
   }.property("challengeStatus"),
