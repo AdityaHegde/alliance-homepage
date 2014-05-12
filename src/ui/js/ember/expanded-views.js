@@ -77,9 +77,9 @@ Views.ChallengesExpandedView = Views.ModuleExpandedView.extend({
           '<h4 class="list-group-item-heading">{{title}}</h4>' +
           '<p class="list-group-item-text">{{statusString}}</p>' +
           '{{#if hasWinners}}' +
-            '<p class="list-group-item-text">First ({{challengeDataObj.first}}) : {{first}}</p>' +
-            '<p class="list-group-item-text">Second ({{challengeDataObj.second}}) : {{second}}</p>' +
-            '<p class="list-group-item-text">Third ({{challengeDataObj.third}}) : {{third}}</p>' +
+            '<p class="list-group-item-text">First ({{challengeDataObj.first}}) : {{firstName}}</p>' +
+            '<p class="list-group-item-text">Second ({{challengeDataObj.second}}) : {{secondName}}</p>' +
+            '<p class="list-group-item-text">Third ({{challengeDataObj.third}}) : {{thirdName}}</p>' +
           '{{/if}}' +
         '</a>' +
       '{{else}}' +

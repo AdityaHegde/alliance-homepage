@@ -102,8 +102,20 @@ GOTAA.ChallengeData = GOTAA.ModuleData.extend({
     return challengeStatus === 3;
   }),
   first : attr(),
+  firstName : function() {
+    var first = this.get("first"), firstMember = first && GOTAA.GlobalData.get("members").findBy("email", first);
+    return firstMember && firstMember.get("gotaname");
+  }.property("GOTAA.GlobalData.members.@each.email", "GOTAA.GlobalData.members.@each.gotaname", "first"),
   second : attr(),
+  secondName : function() {
+    var second = this.get("second"), secondMember = second && GOTAA.GlobalData.get("members").findBy("email", second);
+    return secondMember && secondMember.get("gotaname");
+  }.property("GOTAA.GlobalData.members.@each.email", "GOTAA.GlobalData.members.@each.gotaname", "second"),
   third : attr(),
+  thirdName : function() {
+    var third = this.get("third"), thirdMember = third && GOTAA.GlobalData.get("members").findBy("email", third);
+    return thirdMember && thirdMember.get("gotaname");
+  }.property("GOTAA.GlobalData.members.@each.email", "GOTAA.GlobalData.members.@each.gotaname", "third"),
   hasWinners : function() {
     return this.get("challengeStatus") === 4;
   }.property("challengeStatus"),
