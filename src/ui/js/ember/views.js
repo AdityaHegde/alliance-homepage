@@ -16,7 +16,7 @@ Views.ModuleView = Ember.View.extend({
           '{{/if}}' +
         '{{/if}}' +
         '<span class="btn btn-link btn-sm btn-edit-toolbar" {{action "expandModule" target="view"}}>{{#tool-tip title="Expand Module"}}<span class="glyphicon glyphicon-resize-full"></span>{{/tool-tip}}</span>' +
-        '{{#if GOTAA.GlobalData.profile.isLeader}}' +
+        '{{#if GOTAA.GlobalData.canEditModule}}' +
           '<br><span class="btn btn-link btn-sm btn-edit-toolbar" {{action "moveLeft" view.moduleObj}}>{{#tool-tip title="Move Left"}}<span class="glyphicon glyphicon-chevron-left"></span>{{/tool-tip}}</span>' +
           '<span class="btn btn-link btn-sm btn-edit-toolbar" {{action "moveRight" view.moduleObj}}>{{#tool-tip title="Move Right"}}<span class="glyphicon glyphicon-chevron-right"></span>{{/tool-tip}}</span>' +
           '<span class="btn btn-link btn-sm btn-edit-toolbar" {{action "moveUp" view.moduleObj}}>{{#tool-tip title="Move Up"}}<span class="glyphicon glyphicon-chevron-up"></span>{{/tool-tip}}</span>' +
@@ -70,7 +70,7 @@ Views.ModuleSideView = Views.ModuleView.extend({
           '{{/if}}' +
         '{{/if}}' +
         '<span class="btn btn-link btn-sm btn-edit-toolbar" {{action "expandModule" target="view"}}>{{#tool-tip title="Expand Module"}}<span class="glyphicon glyphicon-resize-full"></span>{{/tool-tip}}</span>' +
-        '{{#if GOTAA.GlobalData.profile.isLeader}}' +
+        '{{#if GOTAA.GlobalData.canEditModule}}' +
           '<br><span class="btn btn-link btn-sm btn-edit-toolbar" {{action "moveLeft" view.moduleObj}}>{{#tool-tip title="Move Left"}}<span class="glyphicon glyphicon-chevron-left"></span>{{/tool-tip}}</span>' +
           '<span class="btn btn-link btn-sm btn-edit-toolbar" {{action "moveRight" view.moduleObj}}>{{#tool-tip title="Move Right"}}<span class="glyphicon glyphicon-chevron-right"></span>{{/tool-tip}}</span>' +
           '<span class="btn btn-link btn-sm btn-edit-toolbar" {{action "moveUp" view.moduleObj}}>{{#tool-tip title="Move Up"}}<span class="glyphicon glyphicon-chevron-up"></span>{{/tool-tip}}</span>' +
@@ -158,7 +158,7 @@ Views.MemberListView = Views.ModuleSideView.extend({
           '<span class="btn btn-link btn-sm btn-edit-toolbar" {{action "addSelf" view.moduleObj}}>{{#tool-tip title="Add Self"}}<span class="glyphicon glyphicon-plus"></span>{{/tool-tip}}</span>' +
         '{{/if}}' +
         '<span class="btn btn-link btn-sm btn-edit-toolbar" {{action "expandModule" target="view"}}>{{#tool-tip title="Expand Module"}}<span class="glyphicon glyphicon-resize-full"></span>{{/tool-tip}}</span>' +
-        '{{#if GOTAA.GlobalData.profile.isLeader}}' +
+        '{{#if GOTAA.GlobalData.canEditModule}}' +
           '<br><span class="btn btn-link btn-sm btn-edit-toolbar" {{action "moveLeft" view.moduleObj}}>{{#tool-tip title="Move Left"}}<span class="glyphicon glyphicon-chevron-left"></span>{{/tool-tip}}</span>' +
           '<span class="btn btn-link btn-sm btn-edit-toolbar" {{action "moveRight" view.moduleObj}}>{{#tool-tip title="Move Right"}}<span class="glyphicon glyphicon-chevron-right"></span>{{/tool-tip}}</span>' +
           '<span class="btn btn-link btn-sm btn-edit-toolbar" {{action "moveUp" view.moduleObj}}>{{#tool-tip title="Move Up"}}<span class="glyphicon glyphicon-chevron-up"></span>{{/tool-tip}}</span>' +

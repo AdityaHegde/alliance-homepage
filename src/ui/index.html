@@ -30,6 +30,7 @@
           <li id="people-link">{{#link-to 'dashboard'}}Dashboard{{/link-to}}</li>
           <li id="report-link">{{#link-to 'profile'}}Profile{{/link-to}}</li>
           {{#if GOTAA.GlobalData.profile.isLeader}}<li id="report-link">{{#link-to 'permission'}}Permission{{/link-to}}</li>{{/if}}
+          <li id="report-link">{{#link-to 'help'}}Help{{/link-to}}</li>
         </ul>
         <p class="navbar-text navbar-right">Signed in as {{GOTAA.GlobalData.profile.name}}</p>
       </div>
@@ -206,6 +207,74 @@
       {{/each}}
     </div>
     {{view Modal.AddEditWindow id="edit-permission-window" columns=columns data=data preSave=preSave saveCallback=onSave saveCallbackContext=this onCancel=onCancel ariaHidden=ariaHidden}}
+  </script>
+
+  <script type="text/x-handlebars" data-template-name="help">
+    <div>
+      <p>This is an alliance web page used to communicate instructions and other stuff with the members. All the messages are available in the "Dashboard" Page</p>
+      <h2>Alliance</h2>
+      <p>This is the page which will show the alliance details like name, motto and members. There might be more data added later on.</p>
+      {{#if GOTAA.GlobalData.canEditAlliance}}
+        <p>Alliance data is edited by pressing the blue "Edit" button and saved by pressing "Save" button.</p>
+        <p>"Invite Member" button opens the invite members window. Here you enter the email address and their position. A mail will be sent to the invited id which can be used to register.</p>
+        <p>Members can be removed by pressing the <span class="glyphicon glyphicon-trash"></span> icon on the top right corner. Member details can be seen by clicking on <span class="glyphicon glyphicon-search"></span> icon on the top right corner.</p>
+      {{/if}}
+      <h2>Dashboard</h2>
+      <p>The dashboard is where all the messages will be shown. There can be different modules here to show different types of data.
+      <p>Modules have 2 modes. The short mode - a smaller version of the module (different in different module). Long mode - a larger version shown in a window (different in different module).</p>
+      <p><span class="glyphicon glyphicon-resize-full"></span> icon opens the long mode. There is a close button in the long mode window.</p>
+      {{#if GOTAA.GlobalData.canEditModule}}
+        <p>Add module window has 4 inputs, a mandatory Title, its type, a description (will be shown below title) and the column to add it to</p>
+        <p><span class="glyphicon glyphicon-plus"></span> icon opens the add entry window. This will be differnet for different modules.</p>
+        <p>Modules can be moved across columns, up and down in the column using the <span class="glyphicon glyphicon-chevron-left"></span> <span class="glyphicon glyphicon-chevron-right"></span> <span class="glyphicon glyphicon-chevron-up"></span> <span class="glyphicon glyphicon-chevron-down"></span> icons.</p>
+      {{/if}}
+      {{#if GOTAA.GlobalData.profile.isLeader}}
+        <p>Members can be assigned to modules so that only they can add, edit or delete entries in that module. <span class="glyphicon glyphicon-user"></span> icon opens the member assign window.</p>
+      {{/if}}
+      <h3>Simple List</h3>
+      <p>This is the basic module which shows a simple list of data. Each entry in this module has a title and a description, both simple text.</p>
+      <p>Short and long modes are the same.</p>
+      <h3>Challenge</h3>
+      <p>This is a list of challenges. Each entry has has Name, start time, status. The start time will be converted to local time for each user and displayed.</p>
+      <p>When the challenge is at "Started - Swing Away" state, members can mark it as "Ended" with an optional prize they got.</p>
+      {{#if GOTAA.GlobalData.profile.canEditModule}}
+        <p>The positions placed by members can be edited by leader once the challenge is marked as "Ended".</p>
+      {{/if}}
+      <p>Short mode contains only the challenges that are either scheduled or have started. The long mode contains all challenges ever run. (Sorting and filtering will be added soon)</p>
+      <h3>Member List</h3>
+      <p>This is a list of members. Can be used to make small groups like ptp group, newly reincarnated.</p>
+      <p>Members can add themselves and remove themselves from these lists. <span class="glyphicon glyphicon-plus"></span> icon will add self with an optional caption. <span class="glyphicon glyphicon-trash"></span> icon on the side of the member's entry will remove self from list.</p>
+      <p>Short and long modes are the same.</p>
+      <h3>Feed</h3>
+      <p>This is a list of messages with large descriptions. The description will be hidden until the title is clicked by the user. (More features planned like screen shots, user comments)</p>
+      <p>Short and long modes are the same. (Long mode will have comments when added)</p>
+      <h3>Camp Items</h3>
+      <p>This is a list of items to horde for the next phase. This will have a camp type and the level range.</p>
+      <p>Short mode has only the camp - levels details and its progress.</p>
+      <p>Long mode has the full list of items and a facility for the member to contribute.</p>
+      <h3>Poll</h3>
+      <p>This is a module for polls. Can vote multiple times if enabled. Members cant add new options for now (will be added in future versions).</p>
+      <p>Short and long modes are the same.</p>
+      <h2>Profile</h2>
+      <p>This page has all the details about one's profile.</p>
+      <p>Customizations currently supported :</p>
+      <ol>
+        <li>Name</li>
+        <li>Birthday - month, date</li>
+        <li>Fealty</li>
+        <li>Linage</li>
+        <li>Talents</li>
+        <li>Game friend request link</li>
+      </ol>
+      <p>Planned options</p>
+      <ol>
+        <li>Profile Image</li>
+      </ol>
+      {{#if GOTAA.GlobalData.profile.isLeader}}
+        <h2>Permission</h2>
+        <p>This page is seen only be the leader. Here leader can give permission for the officers or members to edit alliance data, member data, modules, module entries data.</p>
+      {{/if}}
+    </div>
   </script>
 
   <script src="js/lib/jquery-1.10.2.js"></script>

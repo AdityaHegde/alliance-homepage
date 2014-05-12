@@ -49,6 +49,7 @@ class CampTargetMemberItem(modelbase.ModelBase):
     item = ndb.StringProperty()
     qty = ndb.IntegerProperty()
     contributedTo = ndb.StructuredProperty(CampTargetContribution, repeated=True)
+    lastTransaction = ndb.StructuredProperty(CampTargetContribution, repeated=True)
 
     @classmethod
     def get_key_from_data(model, data):
@@ -56,12 +57,13 @@ class CampTargetMemberItem(modelbase.ModelBase):
 
 
     def addContributed(modelObj, campTarContri):
+        modelObj.lastTransaction.append(campTarContri)
         contributedTo = modelObj.contributedTo
         found = 0
         for contri in contributedTo:
-            if contri.campTarKey == campTarContri.campTarKey and contri.item == campTarContri.item:
+            if contri.campTarKey == campTarContri['campTarKey'] and contri.item == campTarContri['item']:
                 found = 1
-                contri.qty += campTarContri.qty
+                contri.qty += campTarContri['qty']
                 if contri.qty == 0:
                     contributedTo.remove(contri)
         if found == 0:
@@ -102,8 +104,8 @@ class CampTargetMemberItem(modelbase.ModelBase):
 
     @classmethod
     def campItemsRemoved(model, modelObj, qty):
-        for campTarKey in modelObj.contributedTo:
-            campTar = campTarKey.get()
+        for contribution in modelObj.contributedTo:
+            campTar = contribution.campTarKey.get()
             campItems = filter(lambda item: item.item == modelObj.item, campTar.campItems)
             for campItm in campItems:
                 diff = campItm.completed - qty
@@ -118,7 +120,7 @@ class CampTargetMemberItem(modelbase.ModelBase):
                     campItm.completed = 0
 
                 modelObj.addContributed({
-                  "campTarKey" : campTar.key,
+                  "campTarKey" : contribution.campTarKey,
                   "item" : campItm.item,
                   "qty" : contributed,
                 })
@@ -137,6 +139,7 @@ class CampTargetMemberItem(modelbase.ModelBase):
         key = model.get_key_from_data(data)
         modelObj = model(key=key)
         modelObj.populate(**data)
+        modelObj.lastTransaction = []
         model.campItemsAdded(modelObj, modelObj.qty)
         modelObj.put()
         return modelObj
@@ -148,6 +151,7 @@ class CampTargetMemberItem(modelbase.ModelBase):
 
         data['qty'] = int(data['qty'])
         qty = modelObj.qty - data['qty']
+        modelObj.lastTransaction = []
         if qty > 0:
             model.campItemsAdded(modelObj, qty)
         elif qty < 0:
@@ -160,7 +164,11 @@ class CampTargetMemberItem(modelbase.ModelBase):
 
 def create_camps_data():
     for camp in campsdata.campsData:
-        campObj = CampLevel(**camp)
+        campObj = CampLevel.query_model(camp)
+        if not campObj:
+            campObj = CampLevel.create_model(camp)
+        else:
+            campObj = CampLevel(**camp)
         campObj.put()
 
 
@@ -191,7 +199,7 @@ class CreateCampTargetMemberItem(webapp2.RequestHandler):
             params['data']['email'] = self.member.email
             params['data']['qty'] = int(params['data']['qty'])
             campTarMemItm = CampTargetMemberItem.create_model(params['data'])
-            self.response.out.write(json.dumps(response.success("success", { "email" : campTarMemItm.email, "item" : campTarMemItm.item })))
+            self.response.out.write(json.dumps(response.success("success", { "email" : campTarMemItm.email, "item" : campTarMemItm.item, "lastTransaction" : convert_query_to_dict(campTarMemItm.lastTransaction) })))
 
 
 class GetAllCampTargetMemberItems(webapp2.RequestHandler):
@@ -201,7 +209,7 @@ class GetAllCampTargetMemberItems(webapp2.RequestHandler):
     def get(self):
         self.response.headers['Content-Type'] = 'application/json' 
         if self.member:
-            campTarMemItms = convert_query_to_dict(CampTargetMemberItem.query(CampTargetMemberItem.email == self.member.email).fetch(), ["contributedTo"])
+            campTarMemItms = convert_query_to_dict(CampTargetMemberItem.query(CampTargetMemberItem.email == self.member.email).fetch(), ["contributedTo", "lastTransaction"])
             self.response.out.write(json.dumps(response.success("success", campTarMemItms)))
 
 
@@ -216,5 +224,5 @@ class UpdateCampTargetMemberItem(webapp2.RequestHandler):
             params['data']['email'] = self.member.email
             params['data']['qty'] = int(params['data']['qty'])
             campTarMemItm = CampTargetMemberItem.update_model(params['data'])
-            self.response.out.write(json.dumps(response.success("success", { "email" : campTarMemItm.email, "item" : campTarMemItm.item })))
+            self.response.out.write(json.dumps(response.success("success", { "email" : campTarMemItm.email, "item" : campTarMemItm.item, "lastTransaction" : convert_query_to_dict(campTarMemItm.lastTransaction) })))
 

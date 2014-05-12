@@ -126,7 +126,7 @@ class RegisterMember(webapp2.RequestHandler):
                 member.status = 1
                 member.put()
                 token.key.delete()
-                self.redirect("/")
+                self.redirect("/#/profile")
             else:
                 self.response.write('Invalid Request! Wrong Email!')
 

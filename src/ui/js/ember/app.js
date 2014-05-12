@@ -11,6 +11,7 @@ GOTAA.Router.map(function() {
     this.resource('dashboard', { path : 'dashboard' });
     this.resource('profile', { path : 'profile' });
     this.resource('permission', { path : 'permission' });
+    this.resource('help', { path : 'help' });
   });
 });
 

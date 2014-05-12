@@ -70,6 +70,13 @@ GOTAA.DashboardRoute = Ember.Route.extend({
 });
 
 GOTAA.ProfileRoute = Ember.Route.extend({
+  setupController : function(controller, model) {
+    controller.set("model", model);
+    if(!(GOTAA.GlobalData.get("profile") && GOTAA.GlobalData.get("profile").get("gotaname"))) {
+      controller.set("isEditing", true);
+    }
+  },
+
   model : function(params, transtion) {
     return GOTAA.GlobalData.get("profile");
   },
