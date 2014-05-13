@@ -77,9 +77,9 @@ Views.ChallengesExpandedView = Views.ModuleExpandedView.extend({
           '<h4 class="list-group-item-heading">{{title}}</h4>' +
           '<p class="list-group-item-text">{{statusString}}</p>' +
           '{{#if hasWinners}}' +
-            '<p class="list-group-item-text">First ({{challengeDataObj.first}}) : {{firstName}}</p>' +
-            '<p class="list-group-item-text">Second ({{challengeDataObj.second}}) : {{secondName}}</p>' +
-            '<p class="list-group-item-text">Third ({{challengeDataObj.third}}) : {{thirdName}}</p>' +
+            '<div class="list-group-item-text">First ({{challengeDataObj.first}}) : {{firstName}} {{#if canAddSelf}}<span class="btn btn-link btn-placement" {{action "addSelfToPos" this view.moduleObj "first"}}>{{#tool-tip title="Add Self"}}<span class="glyphicon glyphicon-plus"></span>{{/tool-tip}}</span>{{/if}}{{#if placedFirst}}<span class="btn btn-link btn-placement" {{action "removeSelfFromPos" this view.moduleObj "first"}}>{{#tool-tip title="Remove Self"}}<span class="glyphicon glyphicon-trash"></span>{{/tool-tip}}</span>{{/if}}</div>' +
+            '<div class="list-group-item-text">Second ({{challengeDataObj.second}}) : {{secondName}} {{#if canAddSelf}}<span class="btn btn-link btn-placement" {{action "addSelfToPos" this view.moduleObj "second"}}>{{#tool-tip title="Add Self"}}<span class="glyphicon glyphicon-plus"></span>{{/tool-tip}}</span>{{/if}}{{#if placedSecond}}<span class="btn btn-link btn-placement" {{action "removeSelfFromPos" this view.moduleObj "second"}}>{{#tool-tip title="Remove Self"}}<span class="glyphicon glyphicon-trash"></span>{{/tool-tip}}</span>{{/if}}</div>' +
+            '<div class="list-group-item-text">Third ({{challengeDataObj.third}}) : {{thirdName}} {{#if canAddSelf}}<span class="btn btn-link btn-placement" {{action "addSelfToPos" this view.moduleObj "third"}}>{{#tool-tip title="Add Self"}}<span class="glyphicon glyphicon-plus"></span>{{/tool-tip}}</span>{{/if}}{{#if placedThird}}<span class="btn btn-link btn-placement" {{action "removeSelfFromPos" this view.moduleObj "third"}}>{{#tool-tip title="Remove Self"}}<span class="glyphicon glyphicon-trash"></span>{{/tool-tip}}</span>{{/if}}</div>' +
           '{{/if}}' +
         '</a>' +
       '{{else}}' +

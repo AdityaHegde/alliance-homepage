@@ -135,6 +135,7 @@ class Module(modelbase.ModelBase):
         moduleData = moduleTypeToClassMap[modelObj.type].get_all_full({}, data)
         for dat in moduleData:
             moduleTypeToClassMap[modelObj.type].delete_model(dat, data)
+        UsedId.delete_model({ "idNum" : modelObj.id })
         return modelObj
 
 
@@ -175,6 +176,13 @@ class ModuleData(modelbase.ModelChild):
         data = model.modify_data(data)
         modelObj.populate(**data)
         modelObj.put()
+        return modelObj
+
+
+    @classmethod
+    def delete_model(model, data):
+        modelObj = super(model, model).delete_model(data)
+        UsedId.delete_model({ "idNum" : modelObj.id })
         return modelObj
 
 

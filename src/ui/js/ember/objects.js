@@ -71,6 +71,12 @@ GOTAA.DayMap = {
   "6" : "Sat",
 };
 GOTAA.ChallengeData = GOTAA.ModuleData.extend({
+  init : function() {
+    this._super();
+    this.get("placedFirst");
+    this.get("placedSecond");
+    this.get("placedThird");
+  },
   challengeStatus : attr(),
   startsAt : attr(),
   module : belongsTo("challenge"),
@@ -106,16 +112,33 @@ GOTAA.ChallengeData = GOTAA.ModuleData.extend({
     var first = this.get("first"), firstMember = first && GOTAA.GlobalData.get("members").findBy("email", first);
     return firstMember && firstMember.get("name");
   }.property("GOTAA.GlobalData.members.@each.email", "GOTAA.GlobalData.members.@each.name", "first"),
+  placedFirst : function() {
+    var first = this.get("first");
+    return first && GOTAA.GlobalData.get("profile") && first === GOTAA.GlobalData.get("profile").get("email");
+  }.property("GOTAA.GlobalData.profile.email", "first"),
   second : attr(),
   secondName : function() {
     var second = this.get("second"), secondMember = second && GOTAA.GlobalData.get("members").findBy("email", second);
     return secondMember && secondMember.get("name");
   }.property("GOTAA.GlobalData.members.@each.email", "GOTAA.GlobalData.members.@each.name", "second"),
+  placedSecond : function() {
+    var second = this.get("second");
+    return second && GOTAA.GlobalData.get("profile") && second === GOTAA.GlobalData.get("profile").get("email");
+  }.property("GOTAA.GlobalData.profile.email", "second"),
   third : attr(),
   thirdName : function() {
     var third = this.get("third"), thirdMember = third && GOTAA.GlobalData.get("members").findBy("email", third);
     return thirdMember && thirdMember.get("name");
   }.property("GOTAA.GlobalData.members.@each.email", "GOTAA.GlobalData.members.@each.name", "third"),
+  placedThird : function() {
+    var third = this.get("third");
+    return third && GOTAA.GlobalData.get("profile") && third === GOTAA.GlobalData.get("profile").get("email");
+  }.property("GOTAA.GlobalData.profile.email", "third"),
+  canAddSelf : function() {
+    return Ember.isEmpty(this.get("first")) && Ember.isEmpty(this.get("placedFirst")) &&
+           Ember.isEmpty(this.get("second")) && Ember.isEmpty(this.get("placedSecond")) &&
+           Ember.isEmpty(this.get("third")) && Ember.isEmpty(this.get("placedThird"));
+  }.property("placedFirst", "placedSecond", "placedThird"),
   hasWinners : function() {
     return this.get("challengeStatus") === 4;
   }.property("challengeStatus"),
@@ -463,7 +486,7 @@ GOTAA.Profile = DS.Model.extend({
   }),
   bday_date : attr(),
   //'s' added to handle ember-data's pluralize
-  linage : attr(),
+  lineage : attr(),
   fealty : attr(),
   talents : hasMany('talent'),
   timezone : attr(),

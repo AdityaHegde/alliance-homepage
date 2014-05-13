@@ -488,6 +488,20 @@ GOTAA.DashboardController = GOTAA.ModelOperationController.extend({
       }
       this.set("positionsAvailable", positionsAvailable);
     },
+
+    addSelfToPos : function(moduleData, module, position) {
+      moduleData.set(position, GOTAA.GlobalData.get("profile").get("email"));
+      GOTAA.GlobalData.set("modId", module.get("id"));
+      GOTAA.GlobalData.set("modType", module.get("type"));
+      GOTAA.saveRecord(moduleData);
+    },
+
+    removeSelfFromPos : function(moduleData, module, position) {
+      moduleData.set(position, null);
+      GOTAA.GlobalData.set("modId", module.get("id"));
+      GOTAA.GlobalData.set("modType", module.get("type"));
+      GOTAA.saveRecord(moduleData);
+    },
   },
 });
 

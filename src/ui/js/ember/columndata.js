@@ -548,8 +548,8 @@ GOTAA.ColumnDataMap = {
       },
     },*/
     {
-      name : "linage",
-      label : "Linage",
+      name : "lineage",
+      label : "Lineage",
       type : "textareaInput",
       validations : [
       ],
