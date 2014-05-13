@@ -106,7 +106,7 @@
       <div>Is a {{controller.memberViewing.permissionFull}}</div>
       {{#if controller.memberViewing.bday_date}}<div>Born on {{controller.memberViewing.bday_month_str}} {{controller.memberViewing.bday_date}}</div>{{/if}}
       {{#if controller.memberViewing.fealty}}<div>Fealty : {{controller.memberViewing.fealty}}</div>{{/if}}
-      {{#if controller.memberViewing.lineage}}<div>Lineage : {{controller.memberViewing.lineage}}</div>{{/if}}
+      {{#if controller.memberViewing.linage}}<div>Lineage : {{controller.memberViewing.linage}}</div>{{/if}}
       {{#if controller.memberViewing.talents}}<div>Talents : {{#each controller.memberViewing.talents}}<span class="profile-talent">{{talent}}, </span>{{/each}}</div>{{/if}}
       {{#if controller.memberViewing.gotafrlink}}<div><a target="_blank" {{bind-attr href=controller.memberViewing.gotafrlink}}>Game Friend Request Link</a></div>{{/if}}
     {{/view}}
@@ -170,7 +170,7 @@
       {{else}}
         {{#if model.bday_date}}<p>Born on {{model.bday_month_str}} {{model.bday_date}}</p>{{/if}}
         {{#if model.fealty}}<p>Fealty : {{model.fealty}}</p>{{/if}}
-        {{#if model.lineage}}<p>Lineage : {{model.lineage}}</p>{{/if}}
+        {{#if model.linage}}<p>Lineage : {{model.linage}}</p>{{/if}}
         {{#if model.talents}}<p>Talents : {{#each model.talents}}<span class="profile-talent">{{talent}}, </span>{{/each}}</p>{{/if}}
       {{/if}}
       <div class="btn-toolbar">

@@ -486,7 +486,7 @@ GOTAA.Profile = DS.Model.extend({
   }),
   bday_date : attr(),
   //'s' added to handle ember-data's pluralize
-  lineage : attr(),
+  linage : attr(),
   fealty : attr(),
   talents : hasMany('talent'),
   timezone : attr(),
