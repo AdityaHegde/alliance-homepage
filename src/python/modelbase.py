@@ -132,3 +132,36 @@ class ModelChild(ndb.Model):
         modelObj = model.query_model(data, parentData)
         modelObj.key.delete()
         return modelObj
+
+
+class UsedId(ModelBase):
+    idNum = ndb.IntegerProperty()
+
+    @classmethod
+    def query_model(model, data):
+        return model.query(model.idNum == int(data['idNum'])).get()
+
+    @classmethod
+    def create_model(model, data):
+        breakWhile = 0
+        parent = ndb.Key("UsedIdParent", "0")
+        idNum = model.query(ancestor=parent).order(-model.idNum).get()
+        if not idNum:
+            idNum = 1
+        elif idNum == 1048576:
+            idNum = 1
+        else:
+            idNum = idNum.idNum
+            idNum += 1
+            breakWhile = 1
+        while breakWhile == 0:
+            if model.query(model.idNum == idNum, ancestor=parent).get():
+                idNum += 1
+            else:
+                breakWhile = 1
+
+        obj = model(idNum = idNum, parent = parent)
+        obj.put()
+        return obj
+
+

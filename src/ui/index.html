@@ -31,6 +31,7 @@
           <li id="report-link">{{#link-to 'profile'}}Profile{{/link-to}}</li>
           {{#if GOTAA.GlobalData.profile.isLeader}}<li id="report-link">{{#link-to 'permission'}}Permission{{/link-to}}</li>{{/if}}
           <li id="report-link">{{#link-to 'help'}}Help{{/link-to}}</li>
+          {{#if GOTAA.GlobalData.profile.isAdmin}}<li id="report-link">{{#link-to 'admin'}}Admin{{/link-to}}</li>{{/if}}
         </ul>
         <p class="navbar-text navbar-right">Signed in as {{GOTAA.GlobalData.profile.name}}</p>
       </div>
@@ -272,9 +273,15 @@
       </ol>
       {{#if GOTAA.GlobalData.profile.isLeader}}
         <h2>Permission</h2>
-        <p>This page is seen only be the leader. Here leader can give permission for the officers or members to edit alliance data, member data, modules, module entries data.</p>
+        <p>This page is seen only by the leader. Here leader can give permission for the officers or members to edit alliance data, member data, modules, module entries data.</p>
       {{/if}}
     </div>
+  </script>
+
+  <script type="text/x-handlebars" data-template-name="admin">
+    {{textarea class="form-control" value=jsondatastr rows="25"}}
+    <button class="btn btn-default" {{action "getData"}}>Get</button>
+    <button class="btn btn-default" {{action "postData"}}>Post</button>
   </script>
 
   <script src="js/lib/jquery-1.10.2.js"></script>

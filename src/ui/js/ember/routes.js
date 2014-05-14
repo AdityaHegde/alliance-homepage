@@ -28,7 +28,8 @@ GOTAA.IndexRoute = Ember.Route.extend({
           globalPerms.pushObject(this.store.push("permission", permission));
         }
         else {
-          globalPerms.pushObject(this.store.createRecord("permission", {
+          globalPerms.pushObject(this.store.push("permission", {
+            id : GOTAA.Permission.Operations[i],
             oprn : GOTAA.Permission.Operations[i],
             permission : 2,
           }));

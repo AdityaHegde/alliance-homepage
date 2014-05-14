@@ -20,37 +20,6 @@ def delete_from_query(query):
         e.key.delete()
 
 
-class UsedId(modelbase.ModelBase):
-    idNum = ndb.IntegerProperty()
-
-    @classmethod
-    def query_model(model, data):
-        return model.query(model.idNum == int(data['idNum'])).get()
-
-    @classmethod
-    def create_model(model, data):
-        breakWhile = 0
-        parent = ndb.Key("UsedIdParent", "0")
-        idNum = model.query(ancestor=parent).order(-model.idNum).get()
-        if not idNum:
-            idNum = 1
-        elif idNum == 1048576:
-            idNum = 1
-        else:
-            idNum = idNum.idNum
-            idNum += 1
-            breakWhile = 1
-        while breakWhile == 0:
-            if model.query(model.idNum == idNum, ancestor=parent).get():
-                idNum += 1
-            else:
-                breakWhile = 1
-
-        obj = model(idNum = idNum, parent = parent)
-        obj.put()
-        return obj
-
-
 class Module(modelbase.ModelBase):
     id = ndb.IntegerProperty()
     title = ndb.StringProperty()
@@ -74,7 +43,7 @@ class Module(modelbase.ModelBase):
 
     @classmethod
     def create_model(model, data):
-        idNum = UsedId.create_model({})
+        idNum = modelbase.UsedId.create_model({})
         key = model.get_key_from_data({ "id" : idNum.idNum })
         data.pop("id", None)
         modelObj = model(key=key)
@@ -135,7 +104,7 @@ class Module(modelbase.ModelBase):
         moduleData = moduleTypeToClassMap[modelObj.type].get_all_full({}, data)
         for dat in moduleData:
             moduleTypeToClassMap[modelObj.type].delete_model(dat, data)
-        UsedId.delete_model({ "idNum" : modelObj.id })
+        modelbase.UsedId.delete_model({ "idNum" : modelObj.id })
         return modelObj
 
 
@@ -159,7 +128,7 @@ class ModuleData(modelbase.ModelChild):
 
     @classmethod
     def create_model(model, data, parentData):
-        idNum = UsedId.create_model({})
+        idNum = modelbase.UsedId.create_model({})
         parentKey = model.get_key_from_data(data, parentData)
         data.pop("id", None)
         data = model.modify_data(data)
@@ -182,7 +151,7 @@ class ModuleData(modelbase.ModelChild):
     @classmethod
     def delete_model(model, data):
         modelObj = super(model, model).delete_model(data)
-        UsedId.delete_model({ "idNum" : modelObj.id })
+        modelbase.UsedId.delete_model({ "idNum" : modelObj.id })
         return modelObj
 
 
@@ -261,7 +230,7 @@ class CampTarget(ModuleData):
 
     @classmethod
     def create_model(model, data, parentData):
-        idNum = UsedId.create_model({})
+        idNum = modelbase.UsedId.create_model({})
         parentKey = model.get_key_from_data(data, parentData)
         data.pop("id", None)
         modelObj = model(parent=parentKey)
@@ -332,13 +301,13 @@ class PollData(ModuleData):
         idsPresent = {}
         for po in newPollOptions:
             if not po.has_key('optId'):
-                po['optId'] = UsedId.create_model({}).idNum
+                po['optId'] = modelbase.UsedId.create_model({}).idNum
             else:
                 idsPresent[po['optId']] = 1
 
         for opo in oldPollOptions:
             if not idsPresent.has_key(opo['optId']):
-                UsedId.delete_model({ "idNum" : opo['optId'] })
+                modelbase.UsedId.delete_model({ "idNum" : opo['optId'] })
                 delete_from_query(PollVote.query(PollVote.optId == opo['optId']).fetch())
 
 
@@ -425,6 +394,17 @@ class GetModuleAllShort(webapp2.RequestHandler):
         self.response.headers['Content-Type'] = 'application/json' 
         if self.member:
             data = Module.get_all_short()
+            self.response.out.write(json.dumps(response.success("success", {"modules" : data})))
+
+
+class GetModuleAll(webapp2.RequestHandler):
+
+    @member.validate_user
+    @member.validate_user_is_admin
+    def get(self):
+        self.response.headers['Content-Type'] = 'application/json' 
+        if self.member:
+            data = Module.get_all_full()
             self.response.out.write(json.dumps(response.success("success", {"modules" : data})))
 
 

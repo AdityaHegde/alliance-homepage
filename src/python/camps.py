@@ -45,7 +45,7 @@ class CampTargetContribution(ndb.Model):
 
 
 class CampTargetMemberItem(modelbase.ModelBase):
-    email = ndb.StringProperty()
+    email = ndb.IntegerProperty()
     item = ndb.StringProperty()
     qty = ndb.IntegerProperty()
     contributedTo = ndb.StructuredProperty(CampTargetContribution, repeated=True)

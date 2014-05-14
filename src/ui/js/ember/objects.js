@@ -480,6 +480,9 @@ GOTAA.Profile = DS.Model.extend({
   isLeader : function() {
     return this.get("permission") >= 2;
   }.property("permission"),
+  isAdmin : function() {
+    return this.get("permission") == 3;
+  }.property("permission"),
   bday_month : attr(),
   bday_month_str : Ember.computed("bday_month", function() {
     var bday_month = Number(this.get("bday_month"));

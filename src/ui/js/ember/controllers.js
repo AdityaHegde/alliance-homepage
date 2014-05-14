@@ -542,3 +542,69 @@ GOTAA.PermissionController = GOTAA.ModelOperationController.extend({
     },
   },
 });
+
+GOTAA.AdminController = Ember.Controller.extend({
+  jsondata : null,
+  jsondatastr : function(key, value) {
+    if(arguments.length === 1) {
+      return JSON.stringify(this.get("jsondata"));
+    }
+    else {
+      try {
+        this.set("jsondata", JSON.parse(value));
+      } catch (e) {}
+      return value;
+    }
+  }.property("jsondata"),
+
+  deepSearch : function(obj, jsondata) {
+    if(Ember.typeOf(obj) === "object" || Ember.typeOf(obj) === "array") {
+      for(var k in obj) {
+        if(obj.hasOwnProperty(k)) {
+          this.deepSearch(obj[k], jsondata);
+        }
+      }
+    }
+    if(Ember.typeOf(obj) === "object") {
+      if(!obj.permission) {
+        if(obj.id) {
+          jsondata.usedId.removeObject(jsondata.usedId.findBy("idNum", obj.id));
+          delete obj.id;
+        }
+        if(obj.email) {
+          obj.user_id = jsondata.member.findBy("email", obj.email).id;
+          delete obj.email;
+        }
+      }
+    }
+  },
+
+  actions : {
+    getData : function() {
+      var that = this;
+      $.ajax({
+        url : "/backup/get",
+        dataType : "json",
+      }).then(function(data) {
+        if(data.result.status == 0) {
+          that.set("jsondata", data.result.data);
+        }
+        else {
+          that.set("jsondata", data.result.message);
+        }
+      });
+    },
+
+    postData : function() {
+      var jsondata = this.get("jsondata");
+      this.deepSearch(jsondata, jsondata);
+      $.ajax({
+        url : "/backup/put",
+        data : JSON.stringify(jsondata),
+        method : "POST",
+        dataType : "json",
+      });
+      this.set("jsondata", jsondata);
+    },
+  },
+});

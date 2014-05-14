@@ -3,6 +3,7 @@ import urllib
 import json
 import response
 import member
+import modelbase
 import moduledata
 import alliance
 import camps
@@ -57,9 +58,9 @@ class AddAdmin(webapp2.RequestHandler):
     @member.validate_user
     def get(self):
         if self.user:
-            memberObj = member.Member.query(member.Member.permission == permission.LEADER_PERMISSION).get()
+            memberObj = member.Member.query(member.Member.permission == permission.ADMIN_PERMISSION).get()
             if not memberObj:
-                memberObj = member.Member.create_model({ "email" : self.user.email(), "permission" : permission.LEADER_PERMISSION, "status" : 1 })
+                memberObj = member.Member.create_model({ "email" : self.user.email(), "permission" : permission.ADMIN_PERMISSION, "status" : 1 })
                 permission.createPermissions()
                 camps.create_camps_data()
                 challengeslist.create_challenges_data()
@@ -72,15 +73,49 @@ class AddAdmin(webapp2.RequestHandler):
 class CreateData(webapp2.RequestHandler):
 
     @member.validate_user
-    @member.validate_user_is_member
+    @member.validate_user_is_admin
     def get(self):
         if self.member:
-            if self.member.permission == 3:
-                camps.create_camps_data()
-                challengeslist.create_challenges_data()
-                self.response.write('Create Data!')
-            else:
-                self.response.write('Unauthorised Access')
+            camps.create_camps_data()
+            challengeslist.create_challenges_data()
+            self.response.write('Create Data!')
+
+
+#handle camps.CampTargetMemberItem with key property
+DataMap = {
+  "alliance" : alliance.Alliance,
+  "usedId" : modelbase.UsedId,
+  "member" : member.Member,
+  "module" : moduledata.Module,
+  "pollvote" : moduledata.PollVote,
+  "permission" : permission.Permission,
+  "modelPermission" : permission.ModulePermission,
+}
+
+class BackupGet(webapp2.RequestHandler):
+
+    @member.validate_user
+    @member.validate_user_is_admin
+    def get(self):
+        if self.member:
+            data = {}
+            for k in DataMap.keys():
+                data[k] = DataMap[k].get_all_full()
+            self.response.out.write(json.dumps(response.success("success", data)))
+
+class BackupPut(webapp2.RequestHandler):
+
+    @member.validate_user
+    @member.validate_user_is_admin
+    def post(self):
+        if self.member:
+            data = json.loads(self.request.body)
+            for k in data.keys():
+                model = DataMap[k]
+                member.delete_from_query(model.query().fetch())
+                for obj in data[k]:
+                    model.create_model(obj)
+            self.response.out.write(json.dumps(response.success("success", {})))
 
 
 app = webapp2.WSGIApplication([
@@ -121,5 +156,7 @@ app = webapp2.WSGIApplication([
     ('/challengeslistdata/getAll', challengeslist.GetAllChallengeData),
     ('/admin', AddAdmin),
     ('/createData', CreateData),
+    ('/backup/get', BackupGet),
+    ('/backup/put', BackupPut),
     ('/', MainPage),
 ], debug=True)

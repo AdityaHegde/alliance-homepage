@@ -20,6 +20,7 @@ def delete_from_query(query):
 
 
 class Member(modelbase.ModelBase):
+    #id = ndb.IntegerProperty()
     email = ndb.StringProperty()
     profileImg = ndb.BlobProperty()
     gotaname = ndb.StringProperty()
@@ -27,7 +28,6 @@ class Member(modelbase.ModelBase):
     permission = ndb.IntegerProperty()
     bday_month = ndb.IntegerProperty()
     bday_date = ndb.IntegerProperty()
-    #'s' added to handle ember-data's pluralize
     linage = ndb.TextProperty()
     fealty = ndb.StringProperty()
     talents = ndb.StringProperty(repeated=True)
@@ -37,6 +37,13 @@ class Member(modelbase.ModelBase):
     @classmethod
     def get_key_from_data(model, data):
         return ndb.Key(model, data['email'])
+
+    #@classmethod
+    #def create_model(model, data):
+    #    if not data.has_key('id'):
+    #        data['id'] = modelbase.UsedId.create_model({}).idNum
+    #    return super(model, model).create_model(data)
+
 
 class InviteToken(modelbase.ModelBase):
     token = ndb.StringProperty()
@@ -79,7 +86,7 @@ def validate_user(func):
 
 def validate_user_is_member(func):
     def get_post_member(self):
-        member = Member.query_model({ "email" : self.user.email() })
+        member = Member.query(Member.email == self.user.email()).get()
         if member and member.status == 1:
             self.member = member
             func(self)
@@ -90,12 +97,23 @@ def validate_user_is_member(func):
 
 def validate_user_is_leader(fun):
     def get_post(self):
-        member = Member.query_model({ "email" : self.user.email() })
+        member = Member.query(Member.email == self.user.email()).get()
         if member and member.permission >= permission.LEADER_PERMISSION:
             self.member = member
             fun(self)
         else:
             self.response.out.write(json.dumps(response.failure("401", "Have to be a leader to perform this operation")))
+    return get_post
+
+
+def validate_user_is_admin(fun):
+    def get_post(self):
+        member = Member.query(Member.email == self.user.email()).get()
+        if member and member.permission == permission.ADMIN_PERMISSION:
+            self.member = member
+            fun(self)
+        else:
+            self.response.out.write(json.dumps(response.failure("401", "Have to be an admin to perform this operation")))
     return get_post
 
 

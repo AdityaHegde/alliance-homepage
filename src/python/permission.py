@@ -10,6 +10,7 @@ import webapp2
 import json
 
 LEADER_PERMISSION = 2
+ADMIN_PERMISSION = 3
 
 def convert_query_to_dict(query):
     return [e.to_dict() for e in query]
