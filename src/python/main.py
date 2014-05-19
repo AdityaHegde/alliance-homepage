@@ -125,11 +125,11 @@ class MoveData(webapp2.RequestHandler):
         if self.member:
             memMap = {}
             for mem in member.Member.query().fetch():
-                memData = mem.to_dict()
-                mem.key.delete()
-                memObj = member.Member.create_model(memData)
-                logging.warn(memObj)
-                memMap[memObj.email] = memObj
+                #memData = mem.to_dict()
+                #mem.key.delete()
+                #memObj = member.Member.create_model(memData)
+                #logging.warn(memObj)
+                memMap[mem.email] = memObj
 
             for challenge in moduledata.ChallengeModuleData.query().fetch():
                 if challenge.first:
@@ -143,6 +143,10 @@ class MoveData(webapp2.RequestHandler):
             for memberDat in moduledata.MemberListData.query().fetch():
                 memberDat.user_id = memMap[memberDat.email].user_id
                 memberDat.put()
+
+            for memPerm in permission.ModulePermission.query().fetch():
+                memPerm.user_id = memMap[memPerm.email].user_id
+                memPerm.put()
 
         self.response.out.write("Data moved successfully")
 
