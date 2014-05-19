@@ -129,7 +129,7 @@ class MoveData(webapp2.RequestHandler):
                 #mem.key.delete()
                 #memObj = member.Member.create_model(memData)
                 #logging.warn(memObj)
-                memMap[mem.email] = memObj
+                memMap[mem.email] = mem
 
             for challenge in moduledata.ChallengeModuleData.query().fetch():
                 if challenge.first:
