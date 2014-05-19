@@ -145,8 +145,11 @@ class MoveData(webapp2.RequestHandler):
                 memberDat.put()
 
             for memPerm in permission.ModulePermission.query().fetch():
-                memPerm.user_id = memMap[memPerm.email].user_id
-                memPerm.put()
+                if memMap.has_key(memPerm.email):
+                    memPerm.user_id = memMap[memPerm.email].user_id
+                    memPerm.put()
+                else:
+                    memPerm.key.delete()
 
         self.response.out.write("Data moved successfully")
 
