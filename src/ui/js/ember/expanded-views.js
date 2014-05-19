@@ -39,7 +39,7 @@ Views.ModuleExpandedView = Modal.ModalWindow.extend({
             '</div>' +
           '{{/if}}' +
           '<h4 class="list-group-item-heading">{{title}}</h4>' +
-          '<p class="list-group-item-text">{{desc}}</p>' +
+          '<p class="list-group-item-text">{{format desc}}</p>' +
         '</a>' +
       '{{else}}' +
         'Empty!' +

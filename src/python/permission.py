@@ -31,6 +31,7 @@ class Permission(modelbase.ModelBase):
 
 class ModulePermission(modelbase.ModelBase):
     email = ndb.StringProperty()
+    user_id = ndb.IntegerProperty()
     moduleId = ndb.StringProperty()
 
     @classmethod
@@ -73,8 +74,11 @@ def can_edit(oprn):
                 else:
                     modId = 0
                 self.canEdit = ModulePermission.can_edit_module(self.member, modId) or (perm and self.member.permission >= perm.permission) or (self.member.permission >= LEADER_PERMISSION)
-                if self.canEdit or (oprn == "ModuleData" and params['modType'] == "member-list" and params['data']['email'] == self.member.email):
+                #handle challenges properly
+                if self.canEdit or (oprn == "ModuleData" and ((params['modType'] == "member-list" and params['data']['email'] == self.member.email) or (params['modType'] == "challenge"))):
                     func(self)
+                else:
+                    self.response.out.write(json.dumps(response.failure("401", "No permission to edit %s related data" % oprn)))
             elif (perm and self.member.permission >= perm.permission) or (self.member.permission >= LEADER_PERMISSION):
                 func(self)
             else:

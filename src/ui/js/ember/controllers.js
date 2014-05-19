@@ -572,7 +572,7 @@ GOTAA.AdminController = Ember.Controller.extend({
           delete obj.id;
         }
         if(obj.email) {
-          obj.user_id = jsondata.member.findBy("email", obj.email).id;
+          obj.user_id = jsondata.member.findBy("email", obj.email).user_id;
           delete obj.email;
         }
       }

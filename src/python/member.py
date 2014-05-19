@@ -20,7 +20,7 @@ def delete_from_query(query):
 
 
 class Member(modelbase.ModelBase):
-    #id = ndb.IntegerProperty()
+    user_id = ndb.IntegerProperty()
     email = ndb.StringProperty()
     profileImg = ndb.BlobProperty()
     gotaname = ndb.StringProperty()
@@ -36,13 +36,21 @@ class Member(modelbase.ModelBase):
 
     @classmethod
     def get_key_from_data(model, data):
-        return ndb.Key(model, data['email'])
+        return ndb.Key(model, data['user_id'])
 
-    #@classmethod
-    #def create_model(model, data):
-    #    if not data.has_key('id'):
-    #        data['id'] = modelbase.UsedId.create_model({}).idNum
-    #    return super(model, model).create_model(data)
+    @classmethod
+    def create_model(model, data):
+        if not data.has_key('user_id') or not data['user_id']:
+            logging.warn("Id created")
+            data['user_id'] = modelbase.UsedId.create_model({}).idNum
+        return super(model, model).create_model(data)
+
+    @classmethod
+    def delete_model(model, data):
+        modelObj = super(model, model).delete_model(data)
+        if modelObj.user_id:
+            modelbase.UsedId.delete_model({ "idNum" : modelObj.user_id })
+        return modelObj
 
 
 class InviteToken(modelbase.ModelBase):
@@ -140,7 +148,7 @@ class RegisterMember(webapp2.RequestHandler):
             logging.warn(token)
             logging.warn(self.user.email())
             if token and self.user.email() == token.email:
-                member = Member.query_model({ "email" : self.user.email() })
+                member = Member.query(Member.email == self.user.email()).get()
                 member.status = 1
                 member.put()
                 token.key.delete()
@@ -176,7 +184,7 @@ class InviteMember(webapp2.RequestHandler):
         if self.member:
             params = json.loads(self.request.body)
             memberData = params['data']
-            if Member.query_model(memberData):
+            if Member.query(Member.email == memberData['email']).get():
                 self.response.out.write(json.dumps(response.failure("500", "Email already in use")))
             elif not mail.is_email_valid(memberData['email']):
                 self.response.out.write(json.dumps(response.failure("500", "Invalid email address")))
@@ -200,7 +208,8 @@ clicking on the link below:
 class DeleteMember(webapp2.RequestHandler):
 
     @validate_user
-    @validate_user_is_leader
+    @validate_user_is_member
+    @permission.can_edit_GET("Member")
     def get(self):
         self.response.headers['Content-Type'] = 'application/json' 
         if self.member:

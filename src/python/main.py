@@ -25,7 +25,6 @@ class MainPage(webapp2.RequestHandler):
         if user:
             path = os.path.join(os.path.split(__file__)[0], 'public/index.html')
             page = open(path, 'r')
-            logging.warn(page)
             self.response.out.write(page.read())
 
 
@@ -83,12 +82,12 @@ class CreateData(webapp2.RequestHandler):
 
 #handle camps.CampTargetMemberItem with key property
 DataMap = {
-  "alliance" : alliance.Alliance,
-  "usedId" : modelbase.UsedId,
-  "member" : member.Member,
+  #"alliance" : alliance.Alliance,
+  #"usedId" : modelbase.UsedId,
+  #"member" : member.Member,
   "module" : moduledata.Module,
   "pollvote" : moduledata.PollVote,
-  "permission" : permission.Permission,
+  #"permission" : permission.Permission,
   "modelPermission" : permission.ModulePermission,
 }
 
@@ -116,6 +115,36 @@ class BackupPut(webapp2.RequestHandler):
                 for obj in data[k]:
                     model.create_model(obj)
             self.response.out.write(json.dumps(response.success("success", {})))
+
+
+class MoveData(webapp2.RequestHandler):
+
+    @member.validate_user
+    @member.validate_user_is_admin
+    def get(self):
+        if self.member:
+            memMap = {}
+            for mem in member.Member.query().fetch():
+                memData = mem.to_dict()
+                mem.key.delete()
+                memObj = member.Member.create_model(memData)
+                logging.warn(memObj)
+                memMap[memObj.email] = memObj
+
+            for challenge in moduledata.ChallengeModuleData.query().fetch():
+                if challenge.first:
+                    challenge.firstId = memMap[challenge.first].user_id
+                if challenge.second:
+                    challenge.secondId = memMap[challenge.second].user_id
+                if challenge.third:
+                    challenge.thirdId = memMap[challenge.third].user_id
+                challenge.put()
+
+            for memberDat in moduledata.MemberListData.query().fetch():
+                memberDat.user_id = memMap[memberDat.email].user_id
+                memberDat.put()
+
+        self.response.out.write("Data moved successfully")
 
 
 app = webapp2.WSGIApplication([
@@ -158,5 +187,6 @@ app = webapp2.WSGIApplication([
     ('/createData', CreateData),
     ('/backup/get', BackupGet),
     ('/backup/put', BackupPut),
+    ('/movedata', MoveData),
     ('/', MainPage),
 ], debug=True)

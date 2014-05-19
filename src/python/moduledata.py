@@ -161,6 +161,9 @@ class ChallengeModuleData(ModuleData):
     first = ndb.StringProperty()
     second = ndb.StringProperty()
     third = ndb.StringProperty()
+    firstId = ndb.IntegerProperty()
+    secondId = ndb.IntegerProperty()
+    thirdId = ndb.IntegerProperty()
     excludeShort = ["first", "second", "third"]
 
     @classmethod
@@ -284,6 +287,7 @@ class CampTarget(ModuleData):
 
 
 class MemberListData(ModuleData):
+    user_id = ndb.IntegerProperty()
     email = ndb.StringProperty()
 
 
@@ -325,13 +329,14 @@ class PollData(ModuleData):
 
 
 class PollVote(modelbase.ModelBase):
+    user_id = ndb.IntegerProperty()
     email = ndb.StringProperty()
     optId = ndb.IntegerProperty()
     pollId = ndb.IntegerProperty()
 
     @classmethod
     def get_key_from_data(model, data):
-        return ndb.Key(model, "{0}__{1}".format(data['email'], data['optId']))
+        return ndb.Key(model, "{0}__{1}".format(data['user_id'], data['optId']))
 
 
 moduleTypeToClassMap = {
@@ -526,6 +531,7 @@ class UpdateModuleDataRequest(webapp2.RequestHandler):
     def post(self):
         self.response.headers['Content-Type'] = 'application/json' 
         if self.member:
+            logging.warn(self.member)
             params = json.loads(self.request.body)
             moduleDataObj = moduleTypeToClassMap[params['modType']].update_model(params['data'], { "id" : params['modId'], "parentModel" : Module })
             logging.warn(moduleDataObj)
@@ -591,7 +597,7 @@ class DeletePollVote(webapp2.RequestHandler):
         self.response.headers['Content-Type'] = 'application/json'
         if self.member:
             voteObj = PollVote.delete_model({
-              "email" : self.request.get("email"),
+              "user_id" : self.request.get("user_id"),
               "optId" : int(self.request.get("optId")),
             })
             self.response.out.write(json.dumps(response.success("success", {})))

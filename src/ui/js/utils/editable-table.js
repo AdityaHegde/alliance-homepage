@@ -129,22 +129,31 @@ EditableTable.EditCellStaticSelectView = EditableTable.EditCellTextInputView.ext
 
   enableDisableFields : function(value) {
     var col = this.get("col"), cols = this.get("cols");
-    if(cols) {
-      for(var i = 0; i < cols.length; i++) {
-        var opts = cols[i].get("options");
-        if(opts) {
-          for(var j = 0; j < opts.length; j++) {
-            var enableFields = opts[j].enableFields,
-                valEq = value == opts[j].val;
-            if(enableFields) {
-              for(var k = 0; k < enableFields.length; k++) {
-                var ec = cols.findBy("name", enableFields[k].name);
-                ec.set("disabled", (enableFields[k].enable && !valEq) || (enableFields[k].disable && valEq));
-              }
+    var col = this.get("col"), cols = this.get("cols"), opts = col.get("options");
+    if(opts) {
+      var selected = -1;
+      for(var j = 0; j < opts.length; j++) {
+        var enableFields = opts[j].enableFields,
+            valEq = value == opts[j].val;
+        if(valEq) {
+          selected = j;
+          this.set("helpblock", opts[j].helpblock || "");
+        }
+        else {
+          if(enableFields) {
+            for(var k = 0; k < enableFields.length; k++) {
+              var ec = cols.findBy("name", enableFields[k].name);
+              ec.set("disabled", (enableFields[k].enable && !valEq) || (enableFields[k].disable && valEq));
             }
-            if(valEq) {
-              this.set("helpblock", opts[j].helpblock || "");
-            }
+          }
+        }
+      }
+      if(selected >= 0) {
+        var enableFields = opts[selected].enableFields;
+        if(enableFields) {
+          for(var k = 0; k < enableFields.length; k++) {
+            var ec = cols.findBy("name", enableFields[k].name);
+            ec.set("disabled", !enableFields[k].enable || enableFields[k].disable);
           }
         }
       }
@@ -195,8 +204,16 @@ EditableTable.EditCellSelectiveSelectView = Ember.Select.extend({
 });
 
 EditableTable.EditCellLabel = Ember.View.extend({
-  tagName : "label",
-  template : Ember.Handlebars.compile('{{col.label}}'),
+  classNameBindings : ['col.disabled:hidden'],
+  template : Ember.Handlebars.compile('{{view.col.label}}'),
+  col : null,
+  cols : null,
+  row : null,
+});
+
+EditableTable.EditCellLegend = Ember.View.extend({
+  classNameBindings : ['col.disabled:hidden'],
+  template : Ember.Handlebars.compile('<legend>{{view.col.label}}</legend>'),
   col : null,
   cols : null,
   row : null,
@@ -341,7 +358,35 @@ EditableTable.EditCellMultiEntry = EditableTable.EditCellTextInputView.extend({
 });
 
 EditableTable.EditCellCheckBox = EditableTable.EditCellTextInputView.extend({
-  template : Ember.Handlebars.compile('{{view Ember.Checkbox class="form-control" checked=view.val disabled=view.col.fixedValue}}'),
+  template : Ember.Handlebars.compile('<div class="checkbox"><label>{{view Ember.Checkbox checked=view.val disabled=view.col.fixedValue}} {{view.col.checkboxLabel}}</label></div>'),
+
+  enableDisableFields : function(value) {
+    var col = this.get("col"), cols = this.get("cols"),
+        enableFields = col.get("enableFields");
+    if(enableFields) {
+      for(var i = 0; i < enableFields.length; i++) {
+        var ec = cols.findBy("name", enableFields[i].name);
+        ec.set("disabled", (enableFields[i].enable && !value) || (enableFields[i].disable && !!value));
+      }
+    }
+  },
+
+  val : function(key, value) {
+    var col = this.get("col"), row = this.get("row");
+    row._validation = row._validation || {};
+    if(arguments.length > 1) {
+      this.validateValue(value);
+      this.enableDisableFields(value);
+      row.set(col.name, value);
+      return value;
+    }
+    else {
+      value = row.get(col.name);
+      this.validateValue(value);
+      this.enableDisableFields(value);
+      return value;
+    }
+  }.property('col', 'col.disabled'),
 });
 
 EditableTable.TypeToCellMap = {

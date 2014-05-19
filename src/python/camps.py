@@ -45,7 +45,8 @@ class CampTargetContribution(ndb.Model):
 
 
 class CampTargetMemberItem(modelbase.ModelBase):
-    email = ndb.IntegerProperty()
+    user_id = ndb.IntegerProperty()
+    email = ndb.StringProperty()
     item = ndb.StringProperty()
     qty = ndb.IntegerProperty()
     contributedTo = ndb.StructuredProperty(CampTargetContribution, repeated=True)
@@ -53,7 +54,7 @@ class CampTargetMemberItem(modelbase.ModelBase):
 
     @classmethod
     def get_key_from_data(model, data):
-        return ndb.Key(model, "{0}__{1}".format(data['email'], data['item']))
+        return ndb.Key(model, "{0}__{1}".format(data['user_id'], data['item']))
 
 
     def addContributed(modelObj, campTarContri):
@@ -210,10 +211,10 @@ class CreateCampTargetMemberItem(webapp2.RequestHandler):
         self.response.headers['Content-Type'] = 'application/json' 
         if self.member:
             params = json.loads(self.request.body)
-            params['data']['email'] = self.member.email
+            params['data']['user_id'] = self.member.user_id
             params['data']['qty'] = int(params['data']['qty'])
             campTarMemItm = CampTargetMemberItem.create_model(params['data'])
-            self.response.out.write(json.dumps(response.success("success", { "email" : campTarMemItm.email, "item" : campTarMemItm.item, "lastTransactions" : convert_last_transaction(campTarMemItm.lastTransactions) })))
+            self.response.out.write(json.dumps(response.success("success", { "user_id" : campTarMemItm.user_id, "item" : campTarMemItm.item, "lastTransactions" : convert_last_transaction(campTarMemItm.lastTransactions) })))
 
 
 class GetAllCampTargetMemberItems(webapp2.RequestHandler):
@@ -223,7 +224,7 @@ class GetAllCampTargetMemberItems(webapp2.RequestHandler):
     def get(self):
         self.response.headers['Content-Type'] = 'application/json' 
         if self.member:
-            campTarMemItms = convert_query_to_dict(CampTargetMemberItem.query(CampTargetMemberItem.email == self.member.email).fetch(), ["contributedTo", "lastTransactions"])
+            campTarMemItms = convert_query_to_dict(CampTargetMemberItem.query(CampTargetMemberItem.user_id == self.member.user_id).fetch(), ["contributedTo", "lastTransactions"])
             self.response.out.write(json.dumps(response.success("success", campTarMemItms)))
 
 
@@ -235,8 +236,8 @@ class UpdateCampTargetMemberItem(webapp2.RequestHandler):
         self.response.headers['Content-Type'] = 'application/json' 
         if self.member:
             params = json.loads(self.request.body)
-            params['data']['email'] = self.member.email
+            params['data']['user_id'] = self.member.user_id
             params['data']['qty'] = int(params['data']['qty'])
             campTarMemItm = CampTargetMemberItem.update_model(params['data'])
-            self.response.out.write(json.dumps(response.success("success", { "email" : campTarMemItm.email, "item" : campTarMemItm.item, "lastTransactions" : convert_last_transaction(campTarMemItm.lastTransactions) })))
+            self.response.out.write(json.dumps(response.success("success", { "user_id" : campTarMemItm.user_id, "item" : campTarMemItm.item, "lastTransactions" : convert_last_transaction(campTarMemItm.lastTransactions) })))
 
