@@ -33,7 +33,7 @@
           <li id="report-link">{{#link-to 'help'}}Help{{/link-to}}</li>
           {{#if GOTAA.GlobalData.profile.isAdmin}}<li id="report-link">{{#link-to 'admin'}}Admin{{/link-to}}</li>{{/if}}
         </ul>
-        <p class="navbar-text navbar-right">Signed in as {{GOTAA.GlobalData.profile.name}}</p>
+        <p class="navbar-text navbar-right">Signed in as {{GOTAA.GlobalData.profile.name}} <a class="btn-sm" {{bind-attr href="GOTAA.GlobalData.logoutUrl"}}>Logout</a></p>
       </div>
     </nav>
     <div class="container">
@@ -75,9 +75,9 @@
     {{#panel-comp class="members-panel" title="Members" obj=model}}
       {{#if GOTAA.GlobalData.canEditMember}}
         <div class="btn-toolbar">
-          <button class="btn btn-primary" {{action 'inviteMember'}}>Invite Member</button>
+          <button class="btn btn-primary" {{action 'createMember'}}>Invite Member</button>
         </div>
-        {{view Modal.AddEditWindow id="invite-member-window" columns=columns data=data preSave=preSave saveCallback=onSave saveCallbackContext=this onCancel=onCancel ariaHidden=ariaHidden}}
+        {{view Modal.AddEditWindow id="invite-member-window" title="Member Create/Edit" columns=columns data=data preSave=preSave saveCallback=onSave saveCallbackContext=this onCancel=onCancel ariaHidden=ariaHidden}}
       {{/if}}
       {{render "memberslist" GOTAA.GlobalData.members}}
     {{/panel-comp}}
@@ -92,6 +92,9 @@
             <div class="edit-toolbar">
               {{#if GOTAA.GlobalData.canEditMember}}
                 <a class="btn btn-link btn-sm btn-edit-toolbar" {{action "removeMember" this}}>{{#tool-tip title="Remove Member"}}<span class="glyphicon glyphicon-trash"></span>{{/tool-tip}}</a>
+                {{#if notConfirmed}}
+                  <a class="btn btn-link btn-sm btn-edit-toolbar" {{action "updateMember" this}}>{{#tool-tip title="Edit Member"}}<span class="glyphicon glyphicon-pencil"></span>{{/tool-tip}}</a>
+                {{/if}}
               {{/if}}
               <a class="btn btn-link btn-sm btn-edit-toolbar" data-toggle="modal" data-target="#user-details-window" {{action "memberDetails" this}}>
                 {{#tool-tip title="Member Details"}}<span class="glyphicon glyphicon-search"></span>{{/tool-tip}}
@@ -147,7 +150,7 @@
         {{/each}}
       </div>
       {{#if controller.addingMember}}
-        {{view Ember.Select content=controller.members optionValuePath="content.email" optionLabelPath="content.name" value=controller.selectedMember prompt="Select"}}
+        {{view Ember.Select content=controller.members optionValuePath="content.user_id" optionLabelPath="content.name" value=controller.selectedMember prompt="Select"}}
         <button class="btn btn-default btn-sm" {{action "add"}}>Add</button>
         <button class="btn btn-default btn-sm" {{action "cancelAddMember"}}>Cancel</button>
       {{else}}

@@ -37,6 +37,8 @@ GOTAA.IndexRoute = Ember.Route.extend({
       }
     }
 
+    GOTAA.GlobalData.set("logoutUrl", meta.logoutUrl);
+
     if(transition.targetName === 'index.index') {
       this.transitionTo('alliance');
     }

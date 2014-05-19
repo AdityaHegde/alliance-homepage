@@ -41,11 +41,11 @@ Views.ModuleView = Ember.View.extend({
   canEdit : function() {
     if(GOTAA.GlobalData) {
       var modulePermissions = this.get("modulePermissions"),
-          permission = modulePermissions.findBy("email", GOTAA.GlobalData.get("profile").get("email"));
+          permission = modulePermissions.findBy("user_id", GOTAA.GlobalData.get("profile").get("user_id"));
       return GOTAA.GlobalData.canEditModuleData || !Ember.isEmpty(permission);
     }
     return false;
-  }.property("modulePermissions", "GOTAA.GlobalData.profile.email"),
+  }.property("modulePermissions", "GOTAA.GlobalData.profile.user_id"),
 
   actions : {
     expandModule : function() {

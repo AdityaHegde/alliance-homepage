@@ -93,8 +93,12 @@ GOTAA.AllianceController = GOTAA.ModelOperationController.extend({
       this.set("editing", true);
     },
 
-    inviteMember : function() {
+    createMember : function() {
       this.loadColumnsAndShowWindow(null, this.store.createRecord('member'), true);
+    },
+
+    updateMember : function(member) {
+      this.loadColumnsAndShowWindow(null, member, false);
     },
 
     removeMember : function(member) {
@@ -209,7 +213,7 @@ GOTAA.DashboardController = GOTAA.ModelOperationController.extend({
     var modulePermissions = this.get("modulePermissions"),
         members = this.get("members"), modulePermissionNames = [];
     for(var i = 0; i < modulePermissions.length; i++) {
-      var member = members.findBy("email", modulePermissions[i].get("email"));
+      var member = members.findBy("user_id", modulePermissions[i].get("user_id"));
       if(member) {
         modulePermissionNames.pushObject(Ember.Object.create({
           name : member.get("name"),
@@ -259,7 +263,7 @@ GOTAA.DashboardController = GOTAA.ModelOperationController.extend({
     var currentModule = this.get("currentModule"), currentModuleData = this.get("currentModuleData"),
         selectedPosition = this.get("selectedPosition");
     if(selectedPosition) {
-      currentModuleData.set(selectedPosition, GOTAA.GlobalData.profile.get("email"));
+      currentModuleData.set(selectedPosition, GOTAA.GlobalData.profile.get("user_id"));
     }
     currentModuleData.set("challengeStatus", 4);
     GOTAA.GlobalData.set("modId", currentModule.get("id"));
@@ -343,7 +347,7 @@ GOTAA.DashboardController = GOTAA.ModelOperationController.extend({
     add : function() {
       var modulePermission = this.store.createRecord("module-permission", {
         moduleId : this.get("currentModule").get("moduleObj").get("id"),
-        email : this.get("selectedMember"),
+        user_id : this.get("selectedMember"),
       }), modulePermissions = this.get("modulePermissions");
       GOTAA.saveRecord(modulePermission).then(function(data) {
         GOTAA.GlobalData.get("editableModules").pushObject(modulePermission);
@@ -364,7 +368,7 @@ GOTAA.DashboardController = GOTAA.ModelOperationController.extend({
 
     contribute : function(item, camp, view) {
       var store = view.get("controller").store,
-          campMemItm = store.getById("camp-member-item", GOTAA.GlobalData.profile.get("email")+"__"+item.get("item"));
+          campMemItm = store.getById("camp-member-item", GOTAA.GlobalData.profile.get("user_id")+"__"+item.get("item"));
       if(!campMemItm) {
         campMemItm = store.createRecord("camp-member-item", {
           item : item.get("item"),
@@ -397,14 +401,14 @@ GOTAA.DashboardController = GOTAA.ModelOperationController.extend({
       var type = module.get("type"), coldata = GOTAA.ColumnDataMap["member-list"],
           record = this.store.createRecord(GOTAA.ModuleDataObjectMap[type]);
       this.set("module", module);
-      record.set("email", GOTAA.GlobalData.get("profile").get("email"));
+      record.set("user_id", GOTAA.GlobalData.get("profile").get("user_id"));
       if(coldata[0].set) {
         coldata[0].set("fixedValue", "disabled");
-        coldata[0].set("data", [GOTAA.GlobalData.get("members").findBy("email", record.get("email"))]);
+        coldata[0].set("data", [GOTAA.GlobalData.get("members").findBy("user_id", record.get("user_id"))]);
       }
       else {
         coldata[0].fixedValue = "disabled";
-        coldata[0].data = [GOTAA.GlobalData.get("members").findBy("email", record.get("email"))];
+        coldata[0].data = [GOTAA.GlobalData.get("members").findBy("user_id", record.get("user_id"))];
       }
       this.loadColumnsAndShowWindow(coldata, record, true);
     },
@@ -414,11 +418,11 @@ GOTAA.DashboardController = GOTAA.ModelOperationController.extend({
       this.set("module", module);
       if(coldata[0].set) {
         coldata[0].set("fixedValue", "disabled");
-        coldata[0].set("data", [GOTAA.GlobalData.get("members").findBy("email", GOTAA.GlobalData.get("profile").get("email"))]);
+        coldata[0].set("data", [GOTAA.GlobalData.get("members").findBy("user_id", GOTAA.GlobalData.get("profile").get("user_id"))]);
       }
       else {
         coldata[0].fixedValue = "disabled";
-        coldata[0].data = [GOTAA.GlobalData.get("members").findBy("email", GOTAA.GlobalData.get("profile").get("email"))];
+        coldata[0].data = [GOTAA.GlobalData.get("members").findBy("user_id", GOTAA.GlobalData.get("profile").get("user_id"))];
       }
       this.loadColumnsAndShowWindow(coldata, data, true);
     },
@@ -482,15 +486,16 @@ GOTAA.DashboardController = GOTAA.ModelOperationController.extend({
       var positionsAvailable = [], positions = ["first", "second", "third"];
       this.set("selectedPosition", null);
       for(var i = 0; i < positions.length; i++) {
-        if(Ember.isEmpty(moduleData.get(positions[i]))) {
-          positionsAvailable.push({ value : positions[i], label : positions[i] + " - " + moduleData.get("challengeDataObj").get(positions[i]) });
+        var key = positions[i]+"Id";
+        if(Ember.isEmpty(moduleData.get(key))) {
+          positionsAvailable.push({ value : key, label : positions[i] + " - " + moduleData.get("challengeDataObj").get(key) });
         }
       }
       this.set("positionsAvailable", positionsAvailable);
     },
 
     addSelfToPos : function(moduleData, module, position) {
-      moduleData.set(position, GOTAA.GlobalData.get("profile").get("email"));
+      moduleData.set(position, GOTAA.GlobalData.get("profile").get("user_id"));
       GOTAA.GlobalData.set("modId", module.get("id"));
       GOTAA.GlobalData.set("modType", module.get("type"));
       GOTAA.saveRecord(moduleData);
@@ -571,9 +576,9 @@ GOTAA.AdminController = Ember.Controller.extend({
           jsondata.usedId.removeObject(jsondata.usedId.findBy("idNum", obj.id));
           delete obj.id;
         }
-        if(obj.email) {
-          obj.user_id = jsondata.member.findBy("email", obj.email).user_id;
-          delete obj.email;
+        if(obj.user_id) {
+          obj.user_id = jsondata.member.findBy("user_id", obj.user_id).user_id;
+          delete obj.user_id;
         }
       }
     }

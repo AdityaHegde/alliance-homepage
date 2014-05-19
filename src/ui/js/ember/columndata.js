@@ -127,9 +127,9 @@ GOTAA.ColumnDataMap = {
         {val : 2, label : 'Started - Waiting to fill'},
         {val : 3, label : 'Started - Swing Away!'},
         {val : 4, label : 'Ended', enableFields : [
-          {name : "first", disable : false, enable : true},
-          {name : "second", disable : false, enable : true},
-          {name : "third", disable : false, enable : true},
+          {name : "firstId", disable : false, enable : true},
+          {name : "secondId", disable : false, enable : true},
+          {name : "thirdId", disable : false, enable : true},
         ]},
       ],
       sortable : true,
@@ -140,33 +140,33 @@ GOTAA.ColumnDataMap = {
       ],
     },
     {
-      name : "first",
+      name : "firstId",
       label : "First",
       type : "dynamicSelect",
       prompt : "None",
-      dataValCol : "email",
+      dataValCol : "user_id",
       dataLabelCol : "name",
       validations : [
         //{type : 0, invalidMessage : "Cant be empty"},
       ],
     },
     {
-      name : "second",
+      name : "secondId",
       label : "Second",
       type : "dynamicSelect",
       prompt : "None",
-      dataValCol : "email",
+      dataValCol : "user_id",
       dataLabelCol : "name",
       validations : [
         //{type : 0, invalidMessage : "Cant be empty"},
       ],
     },
     {
-      name : "third",
+      name : "thirdId",
       label : "Third",
       type : "dynamicSelect",
       prompt : "None",
-      dataValCol : "email",
+      dataValCol : "user_id",
       dataLabelCol : "name",
       validations : [
         //{type : 0, invalidMessage : "Cant be empty"},
@@ -202,11 +202,11 @@ GOTAA.ColumnDataMap = {
   ],
   "member-list" : [
     {
-      name : "email",
+      name : "user_id",
       label : "Member",
       type : "dynamicSelect",
       prompt : "None",
-      dataValCol : "email",
+      dataValCol : "user_id",
       dataLabelCol : "name",
       validations : [
         {type : 0, invalidMessage : "Cant be empty"},
@@ -264,6 +264,25 @@ GOTAA.ColumnDataMap = {
     },
   ],
   invite : [
+    {
+      name : "isDummy",
+      checkboxLabel : "Is a placeholder member",
+      type : "checkBox",
+      enableFields : [
+        {name : "email", disable : true, enable : false},
+        {name : "gotaname", disable : false, enable : true},
+      ],
+    },
+    {
+      name : "gotaname",
+      label : "Game Name",
+      type : "textInput",
+      validations : [
+        {type : 0, invalidMessage : "Cant be empty"},
+      ],
+      sortable : true,
+      searchable : true,
+    },
     {
       name : "email",
       label : "Email",

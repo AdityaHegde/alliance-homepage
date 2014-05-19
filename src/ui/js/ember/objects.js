@@ -101,45 +101,45 @@ GOTAA.ChallengeData = GOTAA.ModuleData.extend({
     var challengeStatus = this.get("challengeStatus");
     return challengeStatus === 3;
   }),
-  first : attr(),
+  firstId : attr(),
   firstName : function() {
-    var first = this.get("first"), firstMember = first && GOTAA.GlobalData.get("members").findBy("email", first);
+    var firstId = this.get("firstId"), firstMember = firstId && GOTAA.GlobalData.get("members").findBy("user_id", firstId);
     return firstMember && firstMember.get("name");
-  }.property("GOTAA.GlobalData.members.@each.email", "GOTAA.GlobalData.members.@each.name", "first"),
+  }.property("GOTAA.GlobalData.members.@each.user_id", "GOTAA.GlobalData.members.@each.name", "firstId"),
   placedFirst : function() {
-    var first = this.get("first");
-    return !Ember.isEmpty(first) && !Ember.isEmpty(GOTAA.GlobalData.get("profile")) && first === GOTAA.GlobalData.get("profile").get("email");
-  }.property("GOTAA.GlobalData.profile.email", "first"),
+    var firstId = this.get("firstId");
+    return !Ember.isEmpty(firstId) && !Ember.isEmpty(GOTAA.GlobalData.get("profile")) && firstId === GOTAA.GlobalData.get("profile").get("user_id");
+  }.property("GOTAA.GlobalData.profile.user_id", "firstId"),
   canAddFirst : function() {
-    return Ember.isEmpty(this.get("first")) && !this.get("placedFirst") &&
+    return Ember.isEmpty(this.get("firstId")) && !this.get("placedFirst") &&
            !this.get("placedSecond") && !this.get("placedThird");
-  }.property("first", "placedFirst", "placedSecond", "placedThird"),
-  second : attr(),
+  }.property("firstId", "placedFirst", "placedSecond", "placedThird"),
+  secondId : attr(),
   secondName : function() {
-    var second = this.get("second"), secondMember = second && GOTAA.GlobalData.get("members").findBy("email", second);
+    var secondId = this.get("secondId"), secondMember = secondId && GOTAA.GlobalData.get("members").findBy("user_id", secondId);
     return secondMember && secondMember.get("name");
-  }.property("GOTAA.GlobalData.members.@each.email", "GOTAA.GlobalData.members.@each.name", "second"),
+  }.property("GOTAA.GlobalData.members.@each.user_id", "GOTAA.GlobalData.members.@each.name", "secondId"),
   placedSecond : function() {
-    var second = this.get("second");
-    return !Ember.isEmpty(second) && !Ember.isEmpty(GOTAA.GlobalData.get("profile")) && second === GOTAA.GlobalData.get("profile").get("email");
-  }.property("GOTAA.GlobalData.profile.email", "second"),
+    var secondId = this.get("secondId");
+    return !Ember.isEmpty(secondId) && !Ember.isEmpty(GOTAA.GlobalData.get("profile")) && secondId === GOTAA.GlobalData.get("profile").get("user_id");
+  }.property("GOTAA.GlobalData.profile.user_id", "secondId"),
   canAddSecond : function() {
-    return Ember.isEmpty(this.get("second")) && !this.get("placedFirst") &&
+    return Ember.isEmpty(this.get("secondId")) && !this.get("placedFirst") &&
            !this.get("placedSecond") && !this.get("placedThird");
-  }.property("second", "placedFirst", "placedSecond", "placedThird"),
-  third : attr(),
+  }.property("secondId", "placedFirst", "placedSecond", "placedThird"),
+  thirdId : attr(),
   thirdName : function() {
-    var third = this.get("third"), thirdMember = third && GOTAA.GlobalData.get("members").findBy("email", third);
+    var thirdId = this.get("thirdId"), thirdMember = thirdId && GOTAA.GlobalData.get("members").findBy("user_id", thirdId);
     return thirdMember && thirdMember.get("name");
-  }.property("GOTAA.GlobalData.members.@each.email", "GOTAA.GlobalData.members.@each.name", "third"),
+  }.property("GOTAA.GlobalData.members.@each.user_id", "GOTAA.GlobalData.members.@each.name", "thirdId"),
   placedThird : function() {
-    var third = this.get("third");
-    return !Ember.isEmpty(third) && !Ember.isEmpty(GOTAA.GlobalData.get("profile")) && third === GOTAA.GlobalData.get("profile").get("email");
-  }.property("GOTAA.GlobalData.profile.email", "third"),
+    var thirdId = this.get("thirdId");
+    return !Ember.isEmpty(thirdId) && !Ember.isEmpty(GOTAA.GlobalData.get("profile")) && thirdId === GOTAA.GlobalData.get("profile").get("user_id");
+  }.property("GOTAA.GlobalData.profile.user_id", "thirdId"),
   canAddThird : function() {
-    return Ember.isEmpty(this.get("third")) && !this.get("placedFirst") &&
+    return Ember.isEmpty(this.get("thirdId")) && !this.get("placedFirst") &&
            !this.get("placedSecond") && !this.get("placedThird");
-  }.property("third", "placedFirst", "placedSecond", "placedThird"),
+  }.property("thirdId", "placedFirst", "placedSecond", "placedThird"),
   hasWinners : function() {
     return this.get("challengeStatus") === 4;
   }.property("challengeStatus"),
@@ -248,7 +248,7 @@ GOTAA.LastTransaction = DS.Model.extend({
 });
 GOTAA.LastTransaction.keys = ['camp', 'item'];
 GOTAA.CampMemberItem = DS.Model.extend({
-  email : attr(),
+  user_id : attr(),
   item : attr(),
   qty : attr(),
   lastTransactions : hasMany("last-transaction", {async : true}),
@@ -260,22 +260,22 @@ GOTAA.CampMemberItem = DS.Model.extend({
     });
   }.observes("lastTransactions.@each"),
 });
-GOTAA.CampMemberItem.keys = ['email', 'item'];
+GOTAA.CampMemberItem.keys = ['user_id', 'item'];
 GOTAA.CampMemberItem.apiName = 'campmemberitem';
-GOTAA.CampMemberItem.queryParams = ['email', 'item', 'type', 'fromlevel', 'tolevel'];
+GOTAA.CampMemberItem.queryParams = ['user_id', 'item', 'type', 'fromlevel', 'tolevel'];
 GOTAA.CampMemberItem.ignoreFieldsOnCreateUpdate = ['lastTransactions'];
 
 
 GOTAA.MemberListData = GOTAA.ModuleData.extend({
-  email : attr(),
-  memberObj : Ember.computed("email", "GOTAA.GlobalData.members.@each.email", function() {
-    return GOTAA.GlobalData.get("members").findBy("email", this.get("email"));
+  user_id : attr(),
+  memberObj : Ember.computed("user_id", "GOTAA.GlobalData.members.@each.user_id", function() {
+    return GOTAA.GlobalData.get("members").findBy("user_id", this.get("user_id"));
   }),
   module : belongsTo("member-list"),
-  isUser : Ember.computed("email", "GOTAA.GlobalData.profile.email", function() {
-    var user = GOTAA.GlobalData.get("profile").get("email"),
-        email = this.get("email");
-    return user === email;
+  isUser : Ember.computed("user_id", "GOTAA.GlobalData.profile.user_id", function() {
+    var user = GOTAA.GlobalData.get("profile").get("user_id"),
+        user_id = this.get("user_id");
+    return user === user_id;
   }),
 });
 GOTAA.MemberListData.keys = ['id'];
@@ -299,35 +299,35 @@ GOTAA.MemberList.retainId = true;
 
 
 GOTAA.PollVote = DS.Model.extend({
-  email : attr(),
+  user_id : attr(),
   optId : attr(),
   pollId : attr(),
 });
-GOTAA.PollVote.keys = ['email', 'optId'];
+GOTAA.PollVote.keys = ['user_id', 'optId'];
 GOTAA.PollVote.apiName = 'pollvote';
-GOTAA.PollVote.queryParams = ['email', 'optId'];
-GOTAA.PollVote.findParams = ['email', 'optId'];
+GOTAA.PollVote.queryParams = ['user_id', 'optId'];
+GOTAA.PollVote.findParams = ['user_id', 'optId'];
 GOTAA.PollVote.ignoreFieldsOnCreateUpdate = [''];
 
 GOTAA.PollOption = DS.Model.extend({
   title : attr(),
   optId : attr(),
   pollData : belongsTo("poll-data"),
-  isVoted : Ember.computed("optId", "GOTAA.GlobalData.profile.email", "GOTAA.GlobalData.pollVotes.@each.optId", "GOTAA.GlobalData.pollVotes.@each.email", function(key, value) {
+  isVoted : Ember.computed("optId", "GOTAA.GlobalData.profile.user_id", "GOTAA.GlobalData.pollVotes.@each.optId", "GOTAA.GlobalData.pollVotes.@each.user_id", function(key, value) {
     var optId = this.get("optId")+"", pollData = this.get("pollData"),
-        email = GOTAA.GlobalData && GOTAA.GlobalData.get("profile") && GOTAA.GlobalData.get("profile").get("email"),
-        pollVotes = GOTAA.GlobalData.get("pollVotes"), vote = pollVotes.filterBy("optId", optId).filterBy("email", email)[0];
+        user_id = GOTAA.GlobalData && GOTAA.GlobalData.get("profile") && GOTAA.GlobalData.get("profile").get("user_id"),
+        pollVotes = GOTAA.GlobalData.get("pollVotes"), vote = pollVotes.filterBy("optId", optId).filterBy("user_id", user_id)[0];
     if(arguments.length === 1) {
-      if(optId && email && vote) {
+      if(optId && user_id && vote) {
         return true;
       }
       return false;
     }
     else {
       if(value && !vote) {
-        otherVote = pollVotes.filterBy("pollId", pollData.get("id")).filterBy("email", email)[0];
+        otherVote = pollVotes.filterBy("pollId", pollData.get("id")).filterBy("user_id", user_id)[0];
         GOTAA.saveRecord(this.store.createRecord("poll-vote", {
-          email : email,
+          user_id : user_id,
           optId : optId,
           pollId : pollData.get("id"),
         }));
@@ -467,6 +467,7 @@ GOTAA.Talent = DS.Model.extend({
 GOTAA.Talent.keys = ['talent'];
 GOTAA.Profile = DS.Model.extend({
   email : attr(),
+  user_id : attr(),
   gotaname : attr(),
   profileImg : attr(),
   name : function() {
@@ -499,15 +500,16 @@ GOTAA.Profile = DS.Model.extend({
     return this.store.createRecord("talent");
   },
 });
-GOTAA.Profile.keys = ['email'];
+GOTAA.Profile.keys = ['user_id'];
 GOTAA.Profile.apiName = 'profile';
-GOTAA.Profile.queryParams = ['email'];
+GOTAA.Profile.queryParams = ['user_id'];
 
 GOTAA.CurrentProfile = null;
 
 GOTAA.Member = DS.Model.extend({
   gotaname : attr(),
   email : attr(),
+  user_id : attr(),
   name : function() {
     return this.get("gotaname") || this.get("email");
   }.property('gotaname', 'email'),
@@ -532,10 +534,23 @@ GOTAA.Member = DS.Model.extend({
   fealty : attr(),
   timezone : attr(),
   gotafrlink : attr(),
+  notConfirmed : function() {
+    var status = this.get("status");
+    return Ember.isEmpty(status) || status == 0;
+  }.property('status'),
+  isDummy : function(key, newvalue) {
+    if(arguments.length === 1) {
+      var notConfirmed = this.get("notConfirmed"), gotaname = this.get("gotaname"), email = this.get("email");
+      return notConfirmed && !Ember.isEmpty(gotaname) && Ember.isEmpty(email);
+    }
+    else {
+      return newvalue;
+    }
+  }.property('notConfirmed', 'gotaname', 'email'),
 });
-GOTAA.Member.keys = ['email'];
+GOTAA.Member.keys = ['user_id'];
 GOTAA.Member.apiName = 'member';
-GOTAA.Member.queryParams = ['email'];
+GOTAA.Member.queryParams = ['user_id'];
 GOTAA.Member.ignoreFieldsOnCreateUpdate = ['alliance'];
 
 GOTAA.Permission = DS.Model.extend({
@@ -557,12 +572,12 @@ GOTAA.Permission.Operations = [
 ];
 
 GOTAA.ModulePermission = DS.Model.extend({
-  email : attr(),
+  user_id : attr(),
   moduleId : attr(),
 });
-GOTAA.ModulePermission.keys = ['email', 'moduleId'];
+GOTAA.ModulePermission.keys = ['user_id', 'moduleId'];
 GOTAA.ModulePermission.apiName = 'modulepermission';
-GOTAA.ModulePermission.queryParams = ['email', 'moduleId'];
+GOTAA.ModulePermission.queryParams = ['user_id', 'moduleId'];
 
 GOTAA.Alliance = DS.Model.extend({
   name : attr(),

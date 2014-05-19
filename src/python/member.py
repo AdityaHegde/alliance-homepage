@@ -99,7 +99,7 @@ def validate_user_is_member(func):
             self.member = member
             func(self)
         else:
-            self.response.out.write(json.dumps(response.failure("401", "%s is Not a Member" % self.user.email())))
+            self.response.out.write(json.dumps(response.failure("401", "%s is Not a Member. Refresh the page if you have just registered." % self.user.email())))
     return get_post_member
 
 
@@ -154,7 +154,7 @@ class RegisterMember(webapp2.RequestHandler):
                 token.key.delete()
                 self.redirect("/#/profile")
             else:
-                self.response.write('Invalid Request! Wrong Email!')
+                self.response.write('Invalid Request! Wrong Email or Token!')
 
 
 class UpdateProfile(webapp2.RequestHandler):
@@ -171,10 +171,36 @@ class UpdateProfile(webapp2.RequestHandler):
             memberData.pop("status", None)
             self.member.populate(**memberData)
             self.member.put()
-            self.response.write(json.dumps(response.success("success", { "email" : self.member.email })))
+            self.response.write(json.dumps(response.success("success", { "user_id" : self.member.user_id })))
 
 
-class InviteMember(webapp2.RequestHandler):
+def invite_member_by_email(self, memberData):
+    if Member.query(Member.email == memberData['email']).get():
+        self.response.out.write(json.dumps(response.failure("500", "Email already in use")))
+    elif not mail.is_email_valid(memberData['email']):
+        self.response.out.write(json.dumps(response.failure("500", "Invalid email address")))
+    else:
+        if memberData.has_key("user_id"):
+            newMember = Member.update_model(memberData)
+        else:
+            newMember = Member.create_model(memberData)
+        token = InviteToken.create_model({ "email" : newMember.email })
+        url = "%(host)s/validate?t=%(token)s" % {"host" : self.request.host_url, "token" : token.token}
+        sender_address = self.member.email
+        subject = "Confirm your membership"
+        body = """
+Thank you for creating an account! Please confirm your email address by
+clicking on the link below:
+
+%s
+""" % url
+
+        mail.send_mail(sender_address, newMember.email, subject, body)
+        self.response.write(json.dumps(response.success("success", {"user_id" : newMember.user_id})))
+        return newMember
+
+
+class CreateMember(webapp2.RequestHandler):
 
     @validate_user
     @validate_user_is_member
@@ -184,25 +210,38 @@ class InviteMember(webapp2.RequestHandler):
         if self.member:
             params = json.loads(self.request.body)
             memberData = params['data']
-            if Member.query(Member.email == memberData['email']).get():
-                self.response.out.write(json.dumps(response.failure("500", "Email already in use")))
-            elif not mail.is_email_valid(memberData['email']):
-                self.response.out.write(json.dumps(response.failure("500", "Invalid email address")))
+            if memberData.has_key("email"):
+                invite_member_by_email(self, memberData)
             else:
                 newMember = Member.create_model(memberData)
-                token = InviteToken.create_model({ "email" : newMember.email })
-                url = "%(host)s/validate?t=%(token)s" % {"host" : self.request.host_url, "token" : token.token}
-                sender_address = self.member.email
-                subject = "Confirm your membership"
-                body = """
-Thank you for creating an account! Please confirm your email address by
-clicking on the link below:
+                self.response.write(json.dumps(response.success("success", {"user_id" : newMember.user_id})))
 
-%s
-""" % url
 
-                mail.send_mail(sender_address, newMember.email, subject, body)
-                self.response.write(json.dumps(response.success("success", {"email" : newMember.email})))
+class UpdateMember(webapp2.RequestHandler):
+
+    @validate_user
+    @validate_user_is_member
+    @permission.can_edit("Member")
+    def post(self):
+        self.response.headers['Content-Type'] = 'application/json' 
+        if self.member:
+            params = json.loads(self.request.body)
+            memberData = params['data']
+            memberObj = Member.query_model(memberData)
+            logging.warn("Checking")
+            if memberObj.status != None and memberObj.status == 1:
+                logging.warn("Confirmed")
+                self.response.out.write(json.dumps(response.failure("500", "Member has already confirmed email. Cant edit email again")))
+            else:
+                logging.warn("Updated")
+                if memberData.has_key('email'):
+                    if memberObj.email != None and memberObj.email != memberData['email']:
+                        InviteToken.query(InviteToken.email == memberObj.email).get().key.delete()
+                    invite_member_by_email(self, memberData)
+                else:
+                    self.response.write(json.dumps(response.success("success", {"user_id" : newMember.user_id})))
+                Member.update_model(memberData)
+            logging.warn("Checking Done")
 
 
 class DeleteMember(webapp2.RequestHandler):
@@ -213,9 +252,9 @@ class DeleteMember(webapp2.RequestHandler):
     def get(self):
         self.response.headers['Content-Type'] = 'application/json' 
         if self.member:
-            email = self.request.get("email")
-            if email != self.member.email:
-                Member.delete_model({ "email" : email })
+            user_id = self.request.get("user_id")
+            if user_id != self.member.user_id:
+                Member.delete_model({ "user_id" : user_id })
                 invited = InviteToken.query(InviteToken.email == email).get()
                 if invited:
                     invited.key.delete()
@@ -273,7 +312,7 @@ class CreateModulePermission(webapp2.RequestHandler):
             else:
                 modPerm = permission.ModulePermission.create_model(params['data'])
                 modPerm.put()
-                self.response.out.write(json.dumps(response.success("success", { "id" : "%(modId)s_%(email)s" % { "modId" : modPerm.moduleId, "email" : modPerm.email } })))
+                self.response.out.write(json.dumps(response.success("success", { "id" : "%(modId)s_%(user_id)s" % { "modId" : modPerm.moduleId, "user_id" : modPerm.user_id } })))
 
 class DeleteModulePermission(webapp2.RequestHandler):
 
@@ -282,6 +321,6 @@ class DeleteModulePermission(webapp2.RequestHandler):
     def get(self):
         self.response.headers['Content-Type'] = 'application/json' 
         if self.member:
-            permission.ModulePermission.delete_model({ "moduleId" : self.request.get("moduleId"), "email" : self.request.get("email") })
+            permission.ModulePermission.delete_model({ "moduleId" : self.request.get("moduleId"), "user_id" : self.request.get("user_id") })
             self.response.out.write(json.dumps(response.success("success", {})))
 

@@ -45,10 +45,11 @@ class ProfileGetRequest(webapp2.RequestHandler):
             if self.member.permission >= permission.LEADER_PERMISSION:
                 editableModules = permission.ModulePermission.query().fetch()
             else:
-                editableModules = permission.ModulePermission.query(permission.ModulePermission.email == self.member.email).fetch()
+                editableModules = permission.ModulePermission.query(permission.ModulePermission.user_id == self.member.user_id).fetch()
             extraData["permissions"] = permissions
             extraData["editableModules"] = member.convert_query_to_dict(editableModules)
             extraData["pollsVoted"] = member.convert_query_to_dict(moduledata.PollVote.query(moduledata.PollVote.email == self.member.email).fetch())
+            extraData["logoutUrl"] = users.create_logout_url("/")
             self.response.out.write(json.dumps(response.success("success", self.member.to_dict(), extraData)))
 
 
@@ -170,7 +171,8 @@ app = webapp2.WSGIApplication([
     ('/moduleData/update', moduledata.UpdateModuleDataRequest),
     ('/moduleData/delete', moduledata.DeleteModuleDataRequest),
     ('/moduleData/get', moduledata.GetModuleDataRequest),
-    ('/member/create', member.InviteMember),
+    ('/member/create', member.CreateMember),
+    ('/member/update', member.UpdateMember),
     ('/member/getAll', member.GetAllMembers),
     ('/member/delete', member.DeleteMember),
     ('/profile/get', ProfileGetRequest),

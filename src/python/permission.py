@@ -36,11 +36,11 @@ class ModulePermission(modelbase.ModelBase):
 
     @classmethod
     def get_key_from_data(model, data):
-        return ndb.Key(model, "%(e)s__%(i)s" % { "e" : data['email'], "i" : data['moduleId'] })
+        return ndb.Key(model, "%(e)s__%(i)s" % { "e" : data['user_id'], "i" : data['moduleId'] })
 
     @classmethod
     def can_edit_module(model, member, moduleId):
-        modPerm = model.query_model({ "email" : member.email, "moduleId" : moduleId })
+        modPerm = model.query_model({ "user_id" : member.user_id, "moduleId" : moduleId })
         if modPerm or member.permission >= LEADER_PERMISSION:
             return 1
         return 0
@@ -75,7 +75,7 @@ def can_edit(oprn):
                     modId = 0
                 self.canEdit = ModulePermission.can_edit_module(self.member, modId) or (perm and self.member.permission >= perm.permission) or (self.member.permission >= LEADER_PERMISSION)
                 #handle challenges properly
-                if self.canEdit or (oprn == "ModuleData" and ((params['modType'] == "member-list" and params['data']['email'] == self.member.email) or (params['modType'] == "challenge"))):
+                if self.canEdit or (oprn == "ModuleData" and ((params['modType'] == "member-list" and params['data']['user_id'] == self.member.user_id) or (params['modType'] == "challenge"))):
                     func(self)
                 else:
                     self.response.out.write(json.dumps(response.failure("401", "No permission to edit %s related data" % oprn)))
