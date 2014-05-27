@@ -130,7 +130,7 @@ def moveModuleData(modules, moduleDataMap):
             modDatDict['module_id'] = mod.id
             modDat.key.delete()
             newModDat = modDatClass.create_model(modDatDict)
-            mod.moduleData.append(modDatClass.key)
+            mod.moduleData.append(newModDat.key)
         if len(mod.moduleData) > 0:
             mod.put()
 

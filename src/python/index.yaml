@@ -80,3 +80,18 @@ indexes:
   properties:
   - name: idNum
     direction: desc
+
+- kind: ChallengeModuleData
+  ancestor: yes
+  properties:
+  - name: id
+
+- kind: FeedData
+  ancestor: yes
+  properties:
+  - name: id
+
+- kind: MemberListData
+  ancestor: yes
+  properties:
+  - name: id
