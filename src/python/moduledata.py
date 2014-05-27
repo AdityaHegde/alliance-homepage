@@ -167,7 +167,7 @@ class ModuleData(modelbase.ModelBase):
     @classmethod
     def get_cursor_config(model, keys):
         return {
-          "length" : 2,
+          "length" : 10,
         }
 
     @classmethod
@@ -208,17 +208,13 @@ class ChallengeModuleData(ModuleData):
 
     @classmethod
     def get_all_short(model, data, handler):
-        #parentKey = model.get_key_from_data(data)
-        #return convert_query_to_dict(model.query(model.challengeStatus <= 3, ancestor=parentKey).order(-model.challengeStatus, -model.startsAt).fetch(), model.excludeShort)
-        return []
+        return convert_query_to_dict(model.query(model.challengeStatus <= 3).order(-model.challengeStatus, -model.startsAt).fetch(), model.excludeShort)
 
     @classmethod
     def get_all_full(model, data, handler):
-        #parentKey = model.get_key_from_data(data)
-        #activeChallenges = model.get_all_short(data)
-        #oldChallenges = convert_query_to_dict(model.query(model.challengeStatus == 4, ancestor=parentKey).order(-model.challengeStatus, -model.startsAt).fetch(25))
-        #return activeChallenges + oldChallenges
-        return []
+        activeChallenges = model.get_all_short(data)
+        oldChallenges = convert_query_to_dict(model.query(model.challengeStatus == 4).order(-model.challengeStatus, -model.startsAt).fetch(25))
+        return activeChallenges + oldChallenges
 
 
 class FeedData(ModuleData):

@@ -120,7 +120,7 @@ class BackupPut(webapp2.RequestHandler):
 
 
 @ndb.transactional(retries=1, xg=True)
-def moveModuleData(modules, moduleDataMap):
+def moveModuleData(modules, moduleDataMap, handler):
     for mod in modules:
         moduleKey = ndb.Key(moduledata.Module, mod.id)
         mod.moduleData = []
@@ -133,7 +133,7 @@ def moveModuleData(modules, moduleDataMap):
             mod.moduleData.append(newModDat.key)
         if len(mod.moduleData) > 0:
             mod.put()
-            self.response.out.write("Data moved for {0}".format(mod.title))
+            handler.response.out.write("Data moved for {0}".format(mod.title))
             break
 
 
@@ -153,7 +153,7 @@ class MoveData(webapp2.RequestHandler):
                 for modDat in modDatClass.query(ancestor=moduleKey).order(modDatClass.id).fetch():
                     moduleDataMap[mod.id].append(modDat)
 
-            moveModuleData(modules, moduleDataMap)
+            moveModuleData(modules, moduleDataMap, self)
 
         self.response.out.write("Data moved successfully")
 
