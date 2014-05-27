@@ -95,3 +95,10 @@ indexes:
   ancestor: yes
   properties:
   - name: id
+
+- kind: ChallengeModuleData
+  properties:
+  - name: challengeStatus
+    direction: desc
+  - name: startsAt
+    direction: desc

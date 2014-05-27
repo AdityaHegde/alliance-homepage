@@ -123,18 +123,18 @@ class BackupPut(webapp2.RequestHandler):
 def moveModuleData(modules, moduleDataMap, handler):
     for mod in modules:
         moduleKey = ndb.Key(moduledata.Module, mod.id)
-        mod.moduleData = []
-        modDatClass = moduledata.moduleTypeToClassMap[mod.type]
-        for modDat in moduleDataMap[mod.id]:
-            modDatDict = modDat.to_dict()
-            modDatDict['module_id'] = mod.id
-            modDat.key.delete()
-            newModDat = modDatClass.create_model(modDatDict)
-            mod.moduleData.append(newModDat.key)
-        if len(mod.moduleData) > 0:
-            mod.put()
-            handler.response.out.write("Data moved for {0}".format(mod.title))
-            break
+        mod.moduleData = [mod.moduleData[0]]
+        #modDatClass = moduledata.moduleTypeToClassMap[mod.type]
+        #for modDat in moduleDataMap[mod.id]:
+        #    modDatDict = modDat.to_dict()
+        #    modDatDict['module_id'] = mod.id
+        #    modDat.key.delete()
+        #    newModDat = modDatClass.create_model(modDatDict)
+        #    mod.moduleData.append(newModDat.key)
+        #if len(mod.moduleData) > 0:
+        mod.put()
+        #    handler.response.out.write("Data moved for {0}".format(mod.title))
+        #    break
 
 
 class MoveData(webapp2.RequestHandler):
@@ -149,9 +149,9 @@ class MoveData(webapp2.RequestHandler):
                 moduleKey = ndb.Key(moduledata.Module, mod.id)
                 modDatClass = moduledata.moduleTypeToClassMap[mod.type]
                 modules.append(mod)
-                moduleDataMap[mod.id] = []
-                for modDat in modDatClass.query(ancestor=moduleKey).order(modDatClass.id).fetch():
-                    moduleDataMap[mod.id].append(modDat)
+                #moduleDataMap[mod.id] = []
+                #for modDat in modDatClass.query(ancestor=moduleKey).order(modDatClass.id).fetch():
+                #    moduleDataMap[mod.id].append(modDat)
 
             moveModuleData(modules, moduleDataMap, self)
 
