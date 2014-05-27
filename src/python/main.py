@@ -133,6 +133,8 @@ def moveModuleData(modules, moduleDataMap):
             mod.moduleData.append(newModDat.key)
         if len(mod.moduleData) > 0:
             mod.put()
+            self.response.out.write("Data moved for {0}".format(mod.title))
+            break
 
 
 class MoveData(webapp2.RequestHandler):
