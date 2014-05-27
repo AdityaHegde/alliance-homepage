@@ -109,7 +109,7 @@ GOTAA.PermissionRoute = Ember.Route.extend({
 
 GOTAA.ChatRoute = Ember.Route.extend({
   model : function(params, transtion) {
-    #return this.store.findById("channel-object", GOTAA.GlobalData.get("profile").get("user_id")+"__1");
+    //return this.store.findById("channel-object", GOTAA.GlobalData.get("profile").get("user_id")+"__1");
     return {};
   },
 });
