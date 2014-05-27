@@ -69,6 +69,13 @@ GOTAA.DashboardRoute = Ember.Route.extend({
     GOTAA.GlobalData.set("members", this.store.find("member"));
     GOTAA.GlobalData.set("challenges", this.store.find("challenges-list-data"));
     GOTAA.GlobalData.set("pollVotes", this.store.find("poll-vote"));
+    var meta = this.store.metadataFor("dashboard");
+    model.get("modules").forEach(function(item) {
+      if(this.cursors[Number(item.get("id"))] === -1) {
+        item.set("hasAllData", true);
+        item.set("maxLength", item.get("moduleData").get("length"));
+      }
+    }, meta);
   },
 });
 
@@ -97,5 +104,12 @@ GOTAA.ProfileCamptargetRoute = Ember.Route.extend({
 GOTAA.PermissionRoute = Ember.Route.extend({
   model : function(params, transtion) {
     return GOTAA.GlobalData.get("permissions");
+  },
+});
+
+GOTAA.ChatRoute = Ember.Route.extend({
+  model : function(params, transtion) {
+    #return this.store.findById("channel-object", GOTAA.GlobalData.get("profile").get("user_id")+"__1");
+    return {};
   },
 });

@@ -9,6 +9,7 @@ import alliance
 import camps
 import challengeslist
 import permission
+import channelid
 
 from google.appengine.api import users
 from google.appengine.ext import ndb
@@ -99,8 +100,8 @@ class BackupGet(webapp2.RequestHandler):
     def get(self):
         if self.member:
             data = {}
-            for k in DataMap.keys():
-                data[k] = DataMap[k].get_all_full()
+            #for k in DataMap.keys():
+            #    data[k] = DataMap[k].get_all_full()
             self.response.out.write(json.dumps(response.success("success", data)))
 
 class BackupPut(webapp2.RequestHandler):
@@ -110,12 +111,28 @@ class BackupPut(webapp2.RequestHandler):
     def post(self):
         if self.member:
             data = json.loads(self.request.body)
-            for k in data.keys():
-                model = DataMap[k]
-                member.delete_from_query(model.query().fetch())
-                for obj in data[k]:
-                    model.create_model(obj)
-            self.response.out.write(json.dumps(response.success("success", {})))
+            #for k in data.keys():
+            #    model = DataMap[k]
+            #    member.delete_from_query(model.query().fetch())
+            #    for obj in data[k]:
+            #        model.create_model(obj)
+            #self.response.out.write(json.dumps(response.success("success", {})))
+
+
+@ndb.transactional(retries=1, xg=True)
+def moveModuleData(modules, moduleDataMap):
+    for mod in modules:
+        moduleKey = ndb.Key(moduledata.Module, mod.id)
+        mod.moduleData = []
+        modDatClass = moduledata.moduleTypeToClassMap[mod.type]
+        for modDat in moduleDataMap[mod.id]:
+            modDatDict = modDat.to_dict()
+            modDatDict['module_id'] = mod.id
+            modDat.key.delete()
+            newModDat = modDatClass.create_model(modDatDict)
+            mod.moduleData.append(modDatClass.key)
+        if len(mod.moduleData) > 0:
+            mod.put()
 
 
 class MoveData(webapp2.RequestHandler):
@@ -124,33 +141,17 @@ class MoveData(webapp2.RequestHandler):
     @member.validate_user_is_admin
     def get(self):
         if self.member:
-            memMap = {}
-            for mem in member.Member.query().fetch():
-                #memData = mem.to_dict()
-                #mem.key.delete()
-                #memObj = member.Member.create_model(memData)
-                #logging.warn(memObj)
-                memMap[mem.email] = mem
+            modules = []
+            moduleDataMap = {}
+            for mod in moduledata.Module.query().fetch():
+                moduleKey = ndb.Key(moduledata.Module, mod.id)
+                modDatClass = moduledata.moduleTypeToClassMap[mod.type]
+                modules.append(mod)
+                moduleDataMap[mod.id] = []
+                for modDat in modDatClass.query(ancestor=moduleKey).order(modDatClass.id).fetch():
+                    moduleDataMap[mod.id].append(modDat)
 
-            for challenge in moduledata.ChallengeModuleData.query().fetch():
-                if challenge.first:
-                    challenge.firstId = memMap[challenge.first].user_id
-                if challenge.second:
-                    challenge.secondId = memMap[challenge.second].user_id
-                if challenge.third:
-                    challenge.thirdId = memMap[challenge.third].user_id
-                challenge.put()
-
-            for memberDat in moduledata.MemberListData.query().fetch():
-                memberDat.user_id = memMap[memberDat.email].user_id
-                memberDat.put()
-
-            for memPerm in permission.ModulePermission.query().fetch():
-                if memMap.has_key(memPerm.email):
-                    memPerm.user_id = memMap[memPerm.email].user_id
-                    memPerm.put()
-                else:
-                    memPerm.key.delete()
+            moveModuleData(modules, moduleDataMap)
 
         self.response.out.write("Data moved successfully")
 
@@ -163,6 +164,8 @@ app = webapp2.WSGIApplication([
     ('/module/create', moduledata.CreateModuleRequest),
     ('/module/getFull', moduledata.GetModuleFull),
     ('/module/get', moduledata.GetModuleShort),
+    ('/module/getFullNext', moduledata.GetModuleFullNext),
+    ('/module/getNext', moduledata.GetModuleShortNext),
     ('/module/update', moduledata.UpdateModuleRequest),
     ('/module/delete', moduledata.DeleteModuleRequest),
     ('/module/moveHorizontal', moduledata.MoveModuleHorizontal),
@@ -197,5 +200,8 @@ app = webapp2.WSGIApplication([
     ('/backup/get', BackupGet),
     ('/backup/put', BackupPut),
     ('/movedata', MoveData),
+    ('/channel/get', channelid.GetChannel),
+    ('/channel/create', channelid.CreateChannel),
+    ('/_ah/channel/receive', channelid.RecieveMessage),
     ('/', MainPage),
 ], debug=True)

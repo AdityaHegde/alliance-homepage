@@ -1,5 +1,15 @@
 var attr = DS.attr, hasMany = DS.hasMany, belongsTo = DS.belongsTo;
 
+GOTAA.ChannelObject = DS.Model.extend({
+  user_id : attr(),
+  extra_param : attr(),
+  token : attr(),
+});
+GOTAA.ChannelObject.keys = ['user_id', 'extra_param'];
+GOTAA.ChannelObject.apiName = 'channel';
+GOTAA.ChannelObject.queryParams = [];
+GOTAA.ChannelObject.findParams = [];
+
 GOTAA.ModuleData = DS.Model.extend({
   title : attr(),
   desc : attr(),
@@ -12,6 +22,12 @@ GOTAA.ModuleData.findParams = ['modId', 'modType'];
 GOTAA.ModuleData.ignoreFieldsOnCreateUpdate = ['module'];
 GOTAA.ModuleData.retainId = true;
 
+GOTAA.CanViewMember = DS.Model.extend({
+  user_id : attr(),
+  module : belongsTo("module"),
+})
+GOTAA.CanViewMember.keys = ['user_id', 'module'];
+
 GOTAA.Module = DS.Model.extend({
   moduleData : hasMany("module-data", {async : true}),
   title : attr(),
@@ -22,12 +38,28 @@ GOTAA.Module = DS.Model.extend({
   viewObj : Views.SimpleListView,
   expandedView : Views.ModuleExpandedView,
   dashboard : belongsTo("dashboard"),
+  canViewMembers : hasMany("can-view-member"),
+  addEntryHook : function(prop) {
+    return this.store.createRecord("can-view-member");
+  },
+  restrictedView : Ember.computed.notEmpty("canViewMembers"),
+  hasAllData : false,
+  maxLength : 0,
+  moduleDataChanged : function() {
+    var maxLength = this.get("maxLength"),
+        moduleData = this.get("moduleData"), length = moduleData && moduleData.get("length");
+    if(maxLength >= length && this.get("hasAllData")) {
+      this.set("hasAllData", false);
+      this.set("maxLength", 0);
+    }
+  }.observes("moduleData.@each"),
 });
 GOTAA.Module.keys = ['id'];
 GOTAA.Module.apiName = 'module';
 GOTAA.Module.queryParams = ['id'];
 GOTAA.Module.ignoreFieldsOnCreateUpdate = ['moduleData'];
 GOTAA.Module.retainId = true;
+GOTAA.Module.paginatedAttribute = 'moduleData';
 
 
 GOTAA.Image = DS.Model.extend({
@@ -59,6 +91,7 @@ GOTAA.Feed.apiName = 'module';
 GOTAA.Feed.queryParams = ['id'];
 GOTAA.Feed.ignoreFieldsOnCreateUpdate = ['moduleData'];
 GOTAA.Feed.retainId = true;
+GOTAA.Feed.paginatedAttribute = 'moduleData';
 
 
 GOTAA.DayMap = {
@@ -166,6 +199,7 @@ GOTAA.Challenge.apiName = 'module';
 GOTAA.Challenge.queryParams = ['id'];
 GOTAA.Challenge.ignoreFieldsOnCreateUpdate = ['moduleData'];
 GOTAA.Challenge.retainId = true;
+GOTAA.Challenge.paginatedAttribute = 'moduleData';
 
 GOTAA.ChallengesListData = DS.Model.extend({
   name : attr(),
@@ -216,6 +250,7 @@ GOTAA.Camp.keys = ['id'];
 GOTAA.Camp.apiName = 'module';
 GOTAA.Camp.queryParams = ['id'];
 GOTAA.Camp.ignoreFieldsOnCreateUpdate = ['moduleData'];
+GOTAA.Camp.paginatedAttribute = 'moduleData';
 
 GOTAA.CampItem = DS.Model.extend({
   item : attr(),
@@ -296,6 +331,7 @@ GOTAA.MemberList.apiName = 'module';
 GOTAA.MemberList.queryParams = ['id'];
 GOTAA.MemberList.ignoreFieldsOnCreateUpdate = ['moduleData'];
 GOTAA.MemberList.retainId = true;
+GOTAA.MemberList.paginatedAttribute = 'moduleData';
 
 
 GOTAA.PollVote = DS.Model.extend({
@@ -384,6 +420,7 @@ GOTAA.Poll.apiName = 'module';
 GOTAA.Poll.queryParams = ['id'];
 GOTAA.Poll.ignoreFieldsOnCreateUpdate = ['moduleData'];
 GOTAA.Poll.retainId = true;
+GOTAA.Poll.paginatedAttribute = 'moduleData';
 
 
 GOTAA.ModuleObjectMap = {
@@ -602,5 +639,7 @@ GOTAA.GlobalDataObject = Ember.Object.extend({
       this.set("canEdit"+permissions[i].get("oprn"), permissions[i].get("permission") <= profile.get("permission") || profile.get("permission") === 2);
     }
   }.observes("permissions.@each.permission", "profile"),
+
+  cursor : Ember.Object.create(),
 });
 GOTAA.GlobalData = GOTAA.GlobalDataObject.create();

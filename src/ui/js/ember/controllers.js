@@ -229,29 +229,9 @@ GOTAA.DashboardController = GOTAA.ModelOperationController.extend({
 
   columnModify : {
     challenge : function(columnData, model) {
-      for(var i = 3; i <= 5; i++) {
-        if(columnData[i].set) {
-          columnData[i].set("data", GOTAA.GlobalData.get("members"));
-        }
-        else {
-          columnData[i].data = GOTAA.GlobalData.get("members");
-        }
-      }
-      if(columnData[0].set) {
-        columnData[0].set("data", GOTAA.GlobalData.get("challenges"));
-      }
-      else {
-        columnData[0].data = GOTAA.GlobalData.get("challenges");
-      }
     },
 
     "member-list" : function(columnData, model) {
-      if(columnData[0].set) {
-        columnData[0].set("data", GOTAA.GlobalData.get("members"));
-      }
-      else {
-        columnData[0].data = GOTAA.GlobalData.get("members");
-      }
     },
   },
 
@@ -274,18 +254,6 @@ GOTAA.DashboardController = GOTAA.ModelOperationController.extend({
 
   actions : {
     addModule : function() {
-      if(GOTAA.ColumnDataMap.addmodule[1].set) {
-        GOTAA.ColumnDataMap.addmodule[1].set("disabled", false);
-      }
-      else {
-        GOTAA.ColumnDataMap.addmodule[1].disabled = false;
-      }
-      if(GOTAA.ColumnDataMap.addmodule[3].set) {
-        GOTAA.ColumnDataMap.addmodule[3].set("disabled", false);
-      }
-      else {
-        GOTAA.ColumnDataMap.addmodule[3].disabled = false;
-      }
       this.loadColumnsAndShowWindow(GOTAA.ColumnDataMap.addmodule, this.store.createRecord("module"), true);
     },
 
@@ -299,18 +267,6 @@ GOTAA.DashboardController = GOTAA.ModelOperationController.extend({
     },
 
     editModule : function(module) {
-      if(GOTAA.ColumnDataMap.addmodule[1].set) {
-        GOTAA.ColumnDataMap.addmodule[1].set("disabled", true);
-      }
-      else {
-        GOTAA.ColumnDataMap.addmodule[1].disabled = true;
-      }
-      if(GOTAA.ColumnDataMap.addmodule[3].set) {
-        GOTAA.ColumnDataMap.addmodule[3].set("disabled", true);
-      }
-      else {
-        GOTAA.ColumnDataMap.addmodule[3].disabled = true;
-      }
       this.loadColumnsAndShowWindow(GOTAA.ColumnDataMap.addmodule, module, false);
     },
 
@@ -610,6 +566,68 @@ GOTAA.AdminController = Ember.Controller.extend({
         dataType : "json",
       });
       this.set("jsondata", jsondata);
+    },
+  },
+});
+
+GOTAA.ChatController = Ember.Controller.extend({
+  init : function() {
+    this._super();
+    this.set("messages", []);
+  },
+  socket : null,
+
+  tokenChanged : function() {
+    var model = this.get("model"), token = model && model.get("token"),
+        channel, socket;
+    if(token) {
+      channel = new goog.appengine.Channel(token);
+      socket = channel.open();
+      socket.onopen = this.onOpened;
+      socket.onmessage = this.onMessage;
+      socket.onerror = this.onError;
+      socket.onclose = this.onClose;
+      socket.context = this;
+      this.set("socket", socket);
+    }
+  }.observes("model.token"),
+
+  channelOpen : false,
+
+  onOpened : function(response) {
+    this.context.set("channelOpen", true);
+  },
+
+  onMessage : function(response) {
+    var json = JSON.parse(response.data);
+    this.context.get("messages").pushObject(Ember.Object.create(json))
+    console.log(arguments);
+  },
+
+  onError : function(response) {
+    if(response.description === "Token+timed+out.") {
+      var controller = this.context,
+          model = controller.store.createRecord("channel-object", {extra_param : "1", user_id : Ember.get("GOTAA.GlobalData.profile.user_id")});
+      GOTAA.saveRecord(model).then(function() {
+        controller.set("model", model);
+      });
+    }
+  },
+
+  onClose : function(response) {
+  },
+
+  pollOverride : function() {
+  },
+
+  message : "",
+  messages : Utils.hasMany(),
+
+  actions : {
+    send : function() {
+      var message = this.get("message"), socket = this.get("socket");
+      socket.send(message);
+      this.set("message", "");
     },
   },
 });

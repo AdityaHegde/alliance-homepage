@@ -101,8 +101,23 @@ Views.ModuleSideView = Views.ModuleView.extend({
             'Empty!' +
           '{{/each}}' +
         '</div>' +
+        '{{#unless view.moduleObj.hasAllData}}<button class="btn btn-default btn-sm" {{action "getMore" view.moduleObj target="view"}}>Get More</button>{{/unless}}' +
       '</div>' +
     '{{/if}}'),
+
+  actions : {
+    getMore : function(moduleObj) {
+      var path = "GOTAA.GlobalData.cursor."+moduleObj.get("id");
+      Ember.set(path, moduleObj.get("moduleData").get("length"));
+      moduleObj.store.adapterFor("module").findNext(moduleObj, "module", {}).then(function(data) {
+        var meta = data.store.metadataFor("module");
+        if(meta.cursor === -1) {
+          data.set("hasAllData", true);
+          data.set("maxLength", data.get("moduleData").get("length"));
+        }
+      });
+    },
+  },
 });
 
 Views.SimpleListView = Views.ModuleSideView.extend({

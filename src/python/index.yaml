@@ -43,6 +43,18 @@ indexes:
 
 - kind: Module
   properties:
+  - name: canView.user_id
+  - name: col
+  - name: row
+
+- kind: Module
+  properties:
+  - name: canViewMembers.user_id
+  - name: col
+  - name: row
+
+- kind: Module
+  properties:
   - name: col
   - name: row
 
@@ -51,6 +63,17 @@ indexes:
   - name: col
   - name: row
     direction: desc
+
+- kind: Module
+  properties:
+  - name: hasRestrictedView
+  - name: col
+  - name: row
+
+- kind: ModuleData
+  ancestor: yes
+  properties:
+  - name: id
 
 - kind: UsedId
   ancestor: yes

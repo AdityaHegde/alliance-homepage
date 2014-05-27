@@ -287,6 +287,22 @@
     <button class="btn btn-default" {{action "postData"}}>Post</button>
   </script>
 
+  <script type="text/x-handlebars" data-template-name="chat">
+    <div class="list-group">
+      {{#each messages}}
+        <div class="list-group-item">
+          <h4 class="list-group-item-heading">{{author}}</h4>
+          <p class="list-group-item-text">{{message}}<p>
+        </div>
+      {{/each}}
+    </div>
+    {{#if channelOpen}}
+      {{view Ember.TextField value=message}}
+      <button class="btn btn-default btn-sm" {{action "send"}}>Send</button>
+    {{/if}}
+  </script>
+
+  <script src="/_ah/channel/jsapi"></script>
   <script src="js/lib/jquery-1.10.2.js"></script>
   <script src="js/lib/jquery-ui-1.10.4.js"></script>
   <script src="js/lib/bootstrap.js"></script>

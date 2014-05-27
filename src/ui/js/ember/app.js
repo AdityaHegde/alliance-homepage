@@ -13,6 +13,7 @@ GOTAA.Router.map(function() {
     this.resource('permission', { path : 'permission' });
     this.resource('help', { path : 'help' });
     this.resource('admin', { path : 'admin' });
+    this.resource('chat', { path : 'chat' });
   });
 });
 

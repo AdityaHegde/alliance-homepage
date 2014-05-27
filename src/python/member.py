@@ -36,7 +36,7 @@ class Member(modelbase.ModelBase):
 
     @classmethod
     def get_key_from_data(model, data):
-        return ndb.Key(model, data['user_id'])
+        return ndb.Key(model, int(data['user_id']))
 
     @classmethod
     def create_model(model, data):
@@ -254,8 +254,8 @@ class DeleteMember(webapp2.RequestHandler):
         if self.member:
             user_id = self.request.get("user_id")
             if user_id != self.member.user_id:
-                Member.delete_model({ "user_id" : user_id })
-                invited = InviteToken.query(InviteToken.email == email).get()
+                memObj = Member.delete_model({ "user_id" : user_id })
+                invited = InviteToken.query(InviteToken.email == memObj.email).get()
                 if invited:
                     invited.key.delete()
                 self.response.out.write(json.dumps(response.success("success", {})))

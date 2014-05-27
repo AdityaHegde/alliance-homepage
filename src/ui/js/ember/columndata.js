@@ -48,6 +48,7 @@ GOTAA.ColumnDataMap = {
       ],
       sortable : true,
       filterable : true,
+      disableOnEdit : true,
       validations : [
         {type : 0, invalidMessage : "Cant be empty"},
       ],
@@ -70,9 +71,36 @@ GOTAA.ColumnDataMap = {
       ],
       sortable : true,
       filterable : true,
+      disableOnEdit : true,
       validations : [
         {type : 0, invalidMessage : "Cant be empty"},
       ],
+    },
+    {
+      name : "restrictedView",
+      checkboxLabel : "Restricted View",
+      type : "checkBox",
+      enableFields : [
+        {name : "canViewMembers", disable : false, enable : true},
+      ],
+    },
+    {
+      name : "canViewMembers",
+      label : "View Only These Members",
+      type : "multiEntry",
+      validations : [
+      ],
+      childCol : {
+        name : "user_id",
+        type : "dynamicSelect",
+        prompt : "Select",
+        dataValCol : "user_id",
+        dataLabelCol : "name",
+        dataPath : "GOTAA.GlobalData.members",
+        validations : [
+          {type : 0, invalidMessage : "Cant be empty"},
+        ],
+      },
     },
   ],
   module : [
@@ -101,6 +129,7 @@ GOTAA.ColumnDataMap = {
       type : "dynamicSelect",
       dataValCol : "name",
       dataLabelCol : "name",
+      dataPath : "GOTAA.GlobalData.challenges",
       prompt : "Select",
       validations : [
         {type : 0, invalidMessage : "Cant be empty"},
@@ -146,6 +175,7 @@ GOTAA.ColumnDataMap = {
       prompt : "None",
       dataValCol : "user_id",
       dataLabelCol : "name",
+      dataPath : "GOTAA.GlobalData.members",
       validations : [
         //{type : 0, invalidMessage : "Cant be empty"},
       ],
@@ -157,6 +187,7 @@ GOTAA.ColumnDataMap = {
       prompt : "None",
       dataValCol : "user_id",
       dataLabelCol : "name",
+      dataPath : "GOTAA.GlobalData.members",
       validations : [
         //{type : 0, invalidMessage : "Cant be empty"},
       ],
@@ -168,6 +199,7 @@ GOTAA.ColumnDataMap = {
       prompt : "None",
       dataValCol : "user_id",
       dataLabelCol : "name",
+      dataPath : "GOTAA.GlobalData.members",
       validations : [
         //{type : 0, invalidMessage : "Cant be empty"},
       ],
@@ -208,6 +240,7 @@ GOTAA.ColumnDataMap = {
       prompt : "None",
       dataValCol : "user_id",
       dataLabelCol : "name",
+      dataPath : "GOTAA.GlobalData.members",
       validations : [
         {type : 0, invalidMessage : "Cant be empty"},
       ],

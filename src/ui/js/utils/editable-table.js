@@ -5,6 +5,12 @@ EditableTable.EditRowView = Ember.ContainerView.extend({
     this._super();
     var cols = this.get('cols'), row = this.get('row');
     for(var i = 0; i < cols.length; i++) {
+      if(cols[i].disableOnEdit && !row.get("isNew")) {
+        cols[i].disabled = true;
+      }
+      else {
+        cols[i].disabled = false;
+      }
       this.pushObject(EditableTable.TypeToCellMap[cols[i].type].create({
         col : cols[i],
         cols : cols,
@@ -181,8 +187,14 @@ EditableTable.EditCellStaticSelectView = EditableTable.EditCellTextInputView.ext
 //psuedo dynamic : takes options from records
 EditableTable.EditCellDynamicSelectView = EditableTable.EditCellTextInputView.extend({
   selectOptions : function() {
-    var col = this.get("col"), opts = [];
-    col.data.forEach(function(item) {
+    var col = this.get("col"), data = [], opts = [];
+    if(col.dataPath) {
+      data = Ember.get(col.dataPath);
+    }
+    else {
+      data = col.data || [];
+    }
+    data.forEach(function(item) {
       opts.push({ val : item.get(col.dataValCol), label : item.get(col.dataLabelCol)});
     }, this);
     return opts;

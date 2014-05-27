@@ -1,63 +1,71 @@
-SortFilter = Ember.Namespace.create();
-//TODO : support changing filter property type and dynamic filter values
-SortFilter.FilterPropertyValue = Ember.Object.extend({
-  label : "",
-  val : "",
-  checked : true,
-});
-SortFilter.FilterProperty = Ember.Object.extend({
-  filterProperty : "",
-  filterRegex : "",
-  regexObject : function() {
-    return new RegExp(this.get("filterRegex"), "i");
-  }.property('filterRegex'),
-  filteredByRegex : true,
-  filterValues : [],
-  filterValueOptions : Utils.hasMany(SortFilter.FilterPropertyValue),
-  filterValueOptionsDidChange : function() {
-    var filterValueOptions = this.get("filterValueOptions");
-    this.set("filterValues", filterValueOptions.filterBy('checked', true).mapBy('val'));
-  }.observes('filterValueOptions.@each.checked', 'filterValueOptions.@each.val'),
-  filterJoiner : "or",
+ArrayMod = Ember.Namespace.create();
 
-  filterValue : function(item) {
-    var filteredByRegex = this.get("filteredByRegex"),
-        regexObject = this.get("regexObject"),
-        filterValues = this.get("filterValues"),
-        filterJoiner = this.get("filterJoiner"),
-        filterProperty = this.get("filterProperty");
-    if(filterProperty) {
-      var propValue = item.get(filterProperty);
-      if(filteredByRegex) {
-        return regexObject.test(propValue);
-      }
-      else {
-        filterJoiner = filterJoiner == "and";
-        var bool = filterJoiner;
-        filterValues.forEach(function(filterValue) {
-          var res = propValue == filterValue;
-          bool = (filterJoiner && (bool && res)) || (!filterJoiner && (bool || res));
-        });
-        return bool;
-      }
-    }
-    else {
-      return true;
-    }
+ArrayMod.ArrayModifier = Ember.Object.extend({
+  property : "",
+  modify : function(array) {
+    return array;
   },
 });
 
+ArrayMod.ArrayFilterModifier = ArrayMod.ArrayModifier.extend({
+  modify : function(array) {
+    return array.filter(function(item) {
+      var value = item.get(this.get("property"));
+      this.filterFunction(item, value);
+    }, this);
+  },
+
+  filterFunction : function(item, value) {
+    return true;
+  },
+});
+
+ArrayMod.ArraySearchModifier = ArrayMod.ArrayFilterModifier.extend({
+  searchString : "",
+  negate : false,
+  searchRegex : function() {
+    return new RegExp(this.get("searchString") || "", "i");
+  }.property('searchString'),
+
+  filterFunction : function(item, value) {
+    var negate = this.get("negate"), filter = this.get("searchRegex").test(value)
+    return (negate && !filter) || (!negate && filter);
+  },
+});
+
+//TODO : support dynamic tags
+ArrayMod.ArrayTagObjectModifier = Ember.Object.extend({
+  label : "",
+  val : "",
+  checked : true,
+  negate : false,
+});
+ArrayMod.ArrayTagSearchModifier = ArrayMod.ArrayFilterModifier.extend({
+  tags : Utils.hasMany("ArrayMod.ArrayTagObjectModifier"),
+  joiner : "or",
+
+  filterFunction : function(item, value) {
+    var tags = this.get("tags"), joiner = this.get("joiner") == "and", bool = joiner;
+    tags.forEach(function(tag) {
+    for(var i = 0; i < tags.length; i++) {
+      var res = value == tags[i];
+      bool = (joiner && (bool && res)) || (!joiner && (bool || res));
+    }
+    return bool;
+  }
+});
+
 //TODO : revisit the observers addition and deletion
-SortFilter.SortFilterController = Ember.ArrayController.extend({
+ArrayMod.ArrayModController = Ember.ArrayController.extend({
   init : function() {
     this._super();
     var filterProperties = this.get("filterProperties") || [];
-    //convert own properties (if any) to SortFilter.FilterProperty objects
+    //convert own properties (if any) to ArrayMod.FilterProperty objects
     this.set("filterProperties", filterProperties);
     Ember.addBeforeObserver(this, "filterProperties.@each", this, "filterPropertiesWillChange");
   },
 
-  filterProperties : Utils.hasMany(SortFilter.FilterProperty),
+  filterProperties : Utils.hasMany(ArrayMod.FilterProperty),
   isFiltered : Ember.computed.bool('filterProperties'),
 
   filterContent : function(content) {
@@ -241,7 +249,7 @@ SortFilter.SortFilterController = Ember.ArrayController.extend({
   },
 });
 
-SortFilter.SortFilterView = Ember.View.extend({
+ArrayMod.ArrayModView = Ember.View.extend({
   init : function() {
     this._super();
     var controllerObj = this.get("controllerObj"), innerModel = this.get("innerModel");
@@ -358,7 +366,7 @@ SortFilter.SortFilterView = Ember.View.extend({
   actions : {
     addFilter : function() {
       var controller = this.get("controller"), filterProps = controller.get("filterProperties"),
-          newProp = SortFilter.FilterProperty.create();
+          newProp = ArrayMod.FilterProperty.create();
       filterProps.pushObject(newProp);
     },
 

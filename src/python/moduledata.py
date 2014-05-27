@@ -20,6 +20,9 @@ def delete_from_query(query):
         e.key.delete()
 
 
+class MemberModulePermission(ndb.Model):
+    user_id = ndb.IntegerProperty()
+
 class Module(modelbase.ModelBase):
     id = ndb.IntegerProperty()
     title = ndb.StringProperty()
@@ -27,6 +30,10 @@ class Module(modelbase.ModelBase):
     type = ndb.StringProperty()
     col = ndb.IntegerProperty()
     row = ndb.IntegerProperty()
+    canViewMembers = ndb.StructuredProperty(MemberModulePermission, repeated=True)
+    hasRestrictedView = ndb.ComputedProperty(lambda self: len(self.canViewMembers) > 0)
+    canEditMembers = ndb.StructuredProperty(MemberModulePermission, repeated=True)
+    moduleData = ndb.KeyProperty(repeated=True)
 
     @classmethod
     def get_key_from_data(model, data):
@@ -62,39 +69,36 @@ class Module(modelbase.ModelBase):
         return modelObj
 
     @classmethod
-    def get_all_short(model):
-        retData = convert_query_to_dict(model.query().order(model.col, model.row).fetch(), model.excludeShort)
+    def get_all_short(model, handler):
+        #retData = convert_query_to_dict(model.query().order(model.col, model.row).fetch(), ["canViewMembers"])
+        retData = convert_query_to_dict(model.query(ndb.OR(model.hasRestrictedView == False, model.canViewMembers.user_id == handler.member.user_id)).order(model.col, model.row).fetch())
         for dat in retData:
-            dat['parentModel'] = model
-            dat['moduleData'] = moduleTypeToClassMap[dat['type']].get_all_short({}, dat)
-            dat.pop('parentModel', None)
+            handler.cursor = 0
+            dat['moduleData'] = moduleTypeToClassMap[dat['type']].get_all_short(dat['moduleData'], handler)
+            handler.cursorMap[dat['id']] = handler.cursor
         return retData 
 
     @classmethod
-    def get_all_full(model):
-        retData = convert_query_to_dict(model.query().order(model.col, model.row).fetch())
+    def get_all_full(model, handler):
+        retData = convert_query_to_dict(model.query(ndb.OR(model.hasRestrictedView == False, model.canViewMembers.user_id == handler.member.user_id)).order(model.col, model.row).fetch())
         for dat in retData:
-            dat['parentModel'] = model
-            dat['moduleData'] = moduleTypeToClassMap[dat['type']].get_all_full({}, dat)
-            dat.pop('parentModel', None)
+            handler.cursor = 0
+            dat['moduleData'] = moduleTypeToClassMap[dat['type']].get_all_short(dat['moduleData'], handler)
+            handler.cursorMap[dat['id']] = handler.cursor
         return retData 
 
     @classmethod
-    def get_short(model, data):
+    def get_short(model, data, handler):
         modelObj = model.query_model(data)
         retData = modelObj.to_dict()
-        retData['parentModel'] = model
-        retData['moduleData'] = moduleTypeToClassMap[retData['type']].get_all_short({}, retData)
-        retData.pop('parentModel', None)
+        retData['moduleData'] = moduleTypeToClassMap[retData['type']].get_all_short(retData['moduleData'], handler)
         return retData 
 
     @classmethod
-    def get_full(model, data):
+    def get_full(model, data, handler):
         modelObj = model.query_model(data)
         retData = modelObj.to_dict()
-        retData['parentModel'] = model
-        retData['moduleData'] = moduleTypeToClassMap[retData['type']].get_all_full({}, retData)
-        retData.pop('parentModel', None)
+        retData['moduleData'] = moduleTypeToClassMap[retData['type']].get_all_full(retData['moduleData'], handler)
         return retData 
 
     @classmethod
@@ -107,42 +111,48 @@ class Module(modelbase.ModelBase):
         modelbase.UsedId.delete_model({ "idNum" : modelObj.id })
         return modelObj
 
+    @classmethod
+    def moduleData_created(model, data, moduleObj):
+        modelObj = model.query_model(data)
+        modelObj.moduleData.insert(0, moduleObj.key)
+        modelObj.put()
 
-class ModuleData(modelbase.ModelChild):
+    @classmethod
+    def moduleData_deleted(model, data, moduleObj):
+        modelObj = model.query_model(data)
+        modelObj.moduleData.remove(moduleObj.key)
+        modelObj.put()
+
+
+class ModuleData(modelbase.ModelBase):
     id = ndb.IntegerProperty()
+    module_id = ndb.IntegerProperty()
     title = ndb.StringProperty()
     desc = ndb.StringProperty()
 
     @classmethod
-    def get_key_from_data(model, data, parentData):
-        return ndb.Key(parentData['parentModel'], int(parentData['id']))
-
-    @classmethod
-    def query_model(model, data, parentData):
-        parentKey = model.get_key_from_data(data, parentData)
-        return model.query(model.id == int(data['id']), ancestor=parentKey).get()
+    def get_key_from_data(model, data):
+        return ndb.Key(model, int(data['id']))
 
     @classmethod
     def modify_data(model, data):
         return data
 
     @classmethod
-    def create_model(model, data, parentData):
+    def create_model(model, data):
         idNum = modelbase.UsedId.create_model({})
-        parentKey = model.get_key_from_data(data, parentData)
+        key = model.get_key_from_data({ "id" : idNum.idNum })
         data.pop("id", None)
-        data = model.modify_data(data)
-        modelObj = model(parent=parentKey)
+        modelObj = model(key=key)
         modelObj.populate(**data)
         modelObj.id = idNum.idNum
         modelObj.put()
         return modelObj
 
     @classmethod
-    def update_model(model, data, parentData):
-        modelObj = model.query_model(data, parentData)
+    def update_model(model, data):
+        modelObj = model.query_model(data)
         data.pop("id", None)
-        data = model.modify_data(data)
         modelObj.populate(**data)
         modelObj.put()
         return modelObj
@@ -153,6 +163,32 @@ class ModuleData(modelbase.ModelChild):
         modelObj = super(model, model).delete_model(data)
         modelbase.UsedId.delete_model({ "idNum" : modelObj.id })
         return modelObj
+
+    @classmethod
+    def get_cursor_config(model, keys):
+        return {
+          "length" : 2,
+        }
+
+    @classmethod
+    def get_all_short(model, keys, handler):
+        cursorConfig = model.get_cursor_config(keys)
+        lastIndex = handler.cursor + cursorConfig['length']
+        firstIndex = handler.cursor
+        handler.cursor = lastIndex
+        if lastIndex >= len(keys):
+            handler.cursor = -1
+        return convert_query_to_dict(ndb.get_multi(keys[slice(firstIndex, lastIndex)]), model.excludeShort)
+
+    @classmethod
+    def get_all_full(model, keys, handler):
+        cursorConfig = model.get_cursor_config(keys)
+        lastIndex = max(handler.cursor + cursorConfig['length'], len(keys))
+        firstIndex = handler.cursor
+        handler.cursor = lastIndex
+        if lastIndex >= len(keys):
+            handler.cursor = -1
+        return convert_query_to_dict(ndb.get_multi(keys[slice(firstIndex, lastIndex)]))
 
 
 class ChallengeModuleData(ModuleData):
@@ -171,16 +207,18 @@ class ChallengeModuleData(ModuleData):
         return data
 
     @classmethod
-    def get_all_short(model, data, parentData):
-        parentKey = model.get_key_from_data(data, parentData)
-        return convert_query_to_dict(model.query(model.challengeStatus <= 3, ancestor=parentKey).order(-model.challengeStatus, -model.startsAt).fetch(), model.excludeShort)
+    def get_all_short(model, data, handler):
+        #parentKey = model.get_key_from_data(data)
+        #return convert_query_to_dict(model.query(model.challengeStatus <= 3, ancestor=parentKey).order(-model.challengeStatus, -model.startsAt).fetch(), model.excludeShort)
+        return []
 
     @classmethod
-    def get_all_full(model, data, parentData):
-        parentKey = model.get_key_from_data(data, parentData)
-        activeChallenges = model.get_all_short(data, parentData)
-        oldChallenges = convert_query_to_dict(model.query(model.challengeStatus == 4, ancestor=parentKey).order(-model.challengeStatus, -model.startsAt).fetch(25))
-        return activeChallenges + oldChallenges
+    def get_all_full(model, data, handler):
+        #parentKey = model.get_key_from_data(data)
+        #activeChallenges = model.get_all_short(data)
+        #oldChallenges = convert_query_to_dict(model.query(model.challengeStatus == 4, ancestor=parentKey).order(-model.challengeStatus, -model.startsAt).fetch(25))
+        #return activeChallenges + oldChallenges
+        return []
 
 
 class FeedData(ModuleData):
@@ -192,16 +230,6 @@ class FeedData(ModuleData):
     def modify_data(model, data):
         #data['image'] = str(data['image'])
         return data
-
-    @classmethod
-    def get_all_short(model, data, parentData):
-        parentKey = model.get_key_from_data(data, parentData)
-        return convert_query_to_dict(model.query(ancestor=parentKey).order(-model.sticky).fetch(), model.excludeShort)
-
-    @classmethod
-    def get_all_full(model, data, parentData):
-        parentKey = model.get_key_from_data(data, parentData)
-        return convert_query_to_dict(model.query(ancestor=parentKey).order(-model.sticky).fetch())
 
 
 class CampTargetItem(ndb.Model):
@@ -398,8 +426,10 @@ class GetModuleAllShort(webapp2.RequestHandler):
     def get(self):
         self.response.headers['Content-Type'] = 'application/json' 
         if self.member:
-            data = Module.get_all_short()
-            self.response.out.write(json.dumps(response.success("success", {"modules" : data})))
+            self.cursor = 0
+            self.cursorMap = {}
+            data = Module.get_all_short(self)
+            self.response.out.write(json.dumps(response.success("success", {"modules" : data}, { "cursors" : self.cursorMap })))
 
 
 class GetModuleAll(webapp2.RequestHandler):
@@ -409,8 +439,10 @@ class GetModuleAll(webapp2.RequestHandler):
     def get(self):
         self.response.headers['Content-Type'] = 'application/json' 
         if self.member:
-            data = Module.get_all_full()
-            self.response.out.write(json.dumps(response.success("success", {"modules" : data})))
+            self.cursor = 0
+            self.cursorMap = {}
+            data = Module.get_all_full(self)
+            self.response.out.write(json.dumps(response.success("success", {"modules" : data}, { "cursors" : self.cursorMap })))
 
 
 class GetModuleShort(webapp2.RequestHandler):
@@ -420,8 +452,9 @@ class GetModuleShort(webapp2.RequestHandler):
     def get(self):
         self.response.headers['Content-Type'] = 'application/json' 
         if self.member:
-            data = Module.get_short({ "id" : self.request.get("id") })
-            self.response.out.write(json.dumps(response.success("success", data)))
+            self.cursor = 0
+            data = Module.get_short({ "id" : self.request.get("id") }, self)
+            self.response.out.write(json.dumps(response.success("success", data, {"cursor" : self.cursor})))
 
 
 class GetModuleFull(webapp2.RequestHandler):
@@ -431,8 +464,33 @@ class GetModuleFull(webapp2.RequestHandler):
     def get(self):
         self.response.headers['Content-Type'] = 'application/json' 
         if self.member:
-            data = Module.get_full({ "id" : self.request.get("id") })
-            self.response.out.write(json.dumps(response.success("success", data)))
+            self.cursor = 0
+            data = Module.get_full({ "id" : self.request.get("id") }, self)
+            self.response.out.write(json.dumps(response.success("success", data, {"cursor" : self.cursor})))
+
+
+class GetModuleShortNext(webapp2.RequestHandler):
+
+    @member.validate_user
+    @member.validate_user_is_member
+    def get(self):
+        self.response.headers['Content-Type'] = 'application/json' 
+        if self.member:
+            self.cursor = int(self.request.get("cur"))
+            data = Module.get_short({ "id" : self.request.get("id") }, self)
+            self.response.out.write(json.dumps(response.success("success", data, {"cursor" : self.cursor})))
+
+
+class GetModuleFullNext(webapp2.RequestHandler):
+
+    @member.validate_user
+    @member.validate_user_is_member
+    def get(self):
+        self.response.headers['Content-Type'] = 'application/json' 
+        if self.member:
+            self.cursor = int(self.request.get("cur"))
+            data = Module.get_full({ "id" : self.request.get("id") }, self)
+            self.response.out.write(json.dumps(response.success("success", data, {"cursor" : self.cursor})))
 
 
 class MoveModuleHorizontal(webapp2.RequestHandler):
@@ -507,7 +565,9 @@ class CreateModuleDataRequest(webapp2.RequestHandler):
         self.response.headers['Content-Type'] = 'application/json' 
         if self.member:
             params = json.loads(self.request.body)
-            moduleDataObj = moduleTypeToClassMap[params['modType']].create_model(params['data'], { "id" : params['modId'], "parentModel" : Module })
+            params['data']['module_id'] = int(params['modId'])
+            moduleDataObj = moduleTypeToClassMap[params['modType']].create_model(params['data'])
+            Module.moduleData_created({ "id" : params['modId'] }, moduleDataObj)
             logging.warn(moduleDataObj)
             self.response.out.write(json.dumps(response.success("success", moduleDataObj.to_dict())))
 
@@ -533,7 +593,7 @@ class UpdateModuleDataRequest(webapp2.RequestHandler):
         if self.member:
             logging.warn(self.member)
             params = json.loads(self.request.body)
-            moduleDataObj = moduleTypeToClassMap[params['modType']].update_model(params['data'], { "id" : params['modId'], "parentModel" : Module })
+            moduleDataObj = moduleTypeToClassMap[params['modType']].update_model(params['data'])
             logging.warn(moduleDataObj)
             self.response.out.write(json.dumps(response.success("success", moduleDataObj.to_dict())))
 
@@ -546,9 +606,10 @@ class DeleteModuleDataRequest(webapp2.RequestHandler):
     def get(self):
         self.response.headers['Content-Type'] = 'application/json' 
         if self.member:
-            moduleDataObj = moduleTypeToClassMap[self.request.get("modType")].query_model({ "id" : self.request.get("id") }, { "id" : self.request.get("modId"), "parentModel" : Module })
+            moduleDataObj = moduleTypeToClassMap[self.request.get("modType")].query_model({ "id" : self.request.get("id") })
             if self.canEdit or moduleDataObj.email == self.member.email:
-                moduleTypeToClassMap[self.request.get("modType")].delete_model({ "id" : self.request.get("id") }, { "id" : self.request.get("modId"), "parentModel" : Module })
+                moduleTypeToClassMap[self.request.get("modType")].delete_model({ "id" : self.request.get("id") })
+                Module.moduleData_deleted({ "id" : self.request.get("modId") }, moduleDataObj)
                 self.response.out.write(json.dumps(response.success("success", {})))
             else:
                 self.response.out.write(json.dumps(response.failure("401", "No permission to edit Module Data related data")))

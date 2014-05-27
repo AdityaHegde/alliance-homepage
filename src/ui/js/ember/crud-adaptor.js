@@ -64,6 +64,40 @@ GOTAA.ApplicationAdapter = DS.RESTAdapter.extend({
     return this.ajax(this.buildURL(type)+"/getAll", 'GET', { data : query });
   },
 
+  _findNext : function(store, type, query, id, queryType) {
+    var adapter = store.adapterFor(type),
+        serializer = store.serializerFor(type),
+        label = "DS: Handle Adapter#find of " + type.typeKey;
+
+    return $.ajax({
+      url : adapter.buildURL(type)+"/"+queryType,
+      method : 'GET', 
+      data : { id : id, cur : Ember.get("GOTAA.GlobalData.cursor."+id) },
+      dataType : "json",
+    }).then(function(adapterPayload) {
+      Ember.assert("You made a request for a " + type.typeKey + " with id " + id + ", but the adapter's response did not have any data", adapterPayload);
+      var payload = serializer.extract(store, type, adapterPayload, id, "findNext");
+
+      return store.push(type, payload);
+    }, function(error) {
+      var record = store.getById(type, id);
+      record.notFound();
+      throw error;
+    }, "DS: Extract payload of '" + type + "'");
+  },
+
+  findNextFull : function(record, type, query) {
+    type = (Ember.typeOf(type) === "string" ? record.store.modelFor(type) : type);
+    GOTAA.backupData(record, type);
+    return this._findNext(record.store, type, query, GOTAA.getId(record, type), "getFullNext");
+  },
+
+  findNext : function(record, type, query) {
+    type = (Ember.typeOf(type) === "string" ? record.store.modelFor(type) : type);
+    GOTAA.backupData(record, type);
+    return this._findNext(record.store, type, query, GOTAA.getId(record, type), "getNext");
+  },
+
   updateRecord : function(store, type, record) {
     var data = this.serialize(record, { includeId: true });
     GOTAA.backupData(record, type);
@@ -161,6 +195,13 @@ GOTAA.ApplicationSerializer = DS.RESTSerializer.extend({
     return this._super(store, type, payload, id, requestType);
   },
 
+  extractFindNext : function(store, type, payload) {
+    var id = GOTAA.getId(payload.result.data, type);
+    payload.result.data[type.paginatedAttribute].replace(0, 0, GOTAA.backupDataMap[type.typeKey][id][type.paginatedAttribute]);
+    delete GOTAA.backupDataMap[type.typeKey][id];
+    return this.extractSingle(store, type, payload);
+  },
+
   extractDeleteRecord : function(store, type, payload) {
     if(payload.result.status == 1) throw new Ember.Error(payload.result.message);
     return null;
@@ -212,6 +253,7 @@ GOTAA.ApplicationSerializer = DS.RESTSerializer.extend({
     module : function(json) {
       json.dashboard_id = "1";
       json.dashboard_type = json.type;
+      json.dashboard = "1";
       return json;
     },
 
@@ -321,6 +363,7 @@ GOTAA.backupData = function(record, type, create) {
   var data = record.toJSON(), id = (!create && GOTAA.getId(record, type)) || (create && "new");
   GOTAA.backupDataMap[type.typeKey] = GOTAA.backupDataMap[type.typeKey] || {};
   GOTAA.backupDataMap[type.typeKey][id] = data;
+  if(type.retainId) data.id = id;
   for(var i = 0; i < type.keys.length; i++) {
     if(Ember.isEmpty(data[type.keys[i]])) delete data[type.keys[i]];
   }
@@ -372,6 +415,10 @@ GOTAA.retrieveBackup = function(hash, type, hasId) {
 GOTAA.customBackup = {
   "camp-member-item" : function(record, type, data) {
     delete data.lastTransactions;
+  },
+
+  "channel-object" : function(record, type, data) {
+    delete data.token;
   },
 };
 
